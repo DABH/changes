@@ -3,6 +3,15 @@
 // E.g., try http://localhost:8080/changes/33158.
 package main
 
+/*
+Notes:
+
+https://godoc.org/github.com/andygrunwald/go-gerrit
+https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-changes
+https://gerrit-review.googlesource.com/Documentation/user-search.html#_search_operators
+https://review.openstack.org/Documentation/config-hooks.html#_comment_added
+*/
+
 import (
 	"context"
 	"flag"
@@ -14,12 +23,13 @@ import (
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/gorilla/mux"
 	"github.com/gregjones/httpcache"
+	"github.com/shurcooL/changes/gerritapi"
+	"github.com/shurcooL/changes/maintner"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/issues"
 	"github.com/shurcooL/issuesapp"
 	"github.com/shurcooL/reactions/emojis"
-
-	gerritissues "github.com/shurcooL/issues/gerritapi"
+	"golang.org/x/build/maintner/godata"
 )
 
 var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this address.")
@@ -27,14 +37,25 @@ var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this
 func main() {
 	flag.Parse()
 
-	cacheTransport := httpcache.NewMemoryCacheTransport()
-	//gerrit, err := gerrit.NewClient("https://go-review.googlesource.com/", &http.Client{Transport: cacheTransport})
-	gerrit, err := gerrit.NewClient("https://upspin-review.googlesource.com/", &http.Client{Transport: cacheTransport})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	var service issues.Service
+	switch 1 {
+	case 0:
+		cacheTransport := httpcache.NewMemoryCacheTransport()
+		gerrit, err := gerrit.NewClient("https://go-review.googlesource.com/", &http.Client{Transport: cacheTransport})
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	service := gerritissues.NewService(gerrit, nil)
+		service = gerritapi.NewService(gerrit)
+
+	case 1:
+		corpus, err := godata.Get(context.Background())
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		service = maintner.NewService(corpus)
+	}
 
 	issuesOpt := issuesapp.Options{
 		HeadPre: `<style type="text/css">
@@ -81,7 +102,7 @@ func main() {
 		if req.URL.Path == "" {
 			req.URL.Path = "/"
 		}
-		req = req.WithContext(context.WithValue(req.Context(), issuesapp.RepoSpecContextKey, issues.RepoSpec{URI: "upspin"}))
+		req = req.WithContext(context.WithValue(req.Context(), issuesapp.RepoSpecContextKey, issues.RepoSpec{URI: "go.googlesource.com/go"}))
 		req = req.WithContext(context.WithValue(req.Context(), issuesapp.BaseURIContextKey, "/changes"))
 		issuesApp.ServeHTTP(w, req)
 	})
@@ -97,7 +118,7 @@ func main() {
 	r.PathPrefix("/emojis/").Handler(http.StripPrefix("/emojis", emojisHandler))
 
 	printServingAt(*httpFlag)
-	err = http.ListenAndServe(*httpFlag, r)
+	err := http.ListenAndServe(*httpFlag, r)
 	if err != nil {
 		log.Fatalln("ListenAndServe:", err)
 	}
