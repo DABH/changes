@@ -20,11 +20,11 @@ import (
 	"net/http"
 	"strings"
 
+	"dmitri.shuralyov.com/changes/gerritapi"
+	"dmitri.shuralyov.com/changes/maintner"
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/gorilla/mux"
 	"github.com/gregjones/httpcache"
-	"github.com/shurcooL/changes/gerritapi"
-	"github.com/shurcooL/changes/maintner"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/issues"
 	"github.com/shurcooL/issuesapp"
