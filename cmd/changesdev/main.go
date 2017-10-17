@@ -123,7 +123,7 @@ func main() {
 			req.URL.Path = "/"
 		}
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/go"))
-		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/shurcooL/vfsgen"))
+		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/google/go-github"))
 		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, "/changes"))
 		changesApp.ServeHTTP(w, req)
 	})

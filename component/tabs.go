@@ -22,13 +22,17 @@ type IssuesNav struct {
 
 func (n IssuesNav) Render() []*html.Node {
 	// TODO: Make this much nicer.
-	// <div class="list-entry-header">
+	// <header class="list-entry-header">
 	// 	<nav>{{.Tabs}}</nav>
-	// </div>
+	// </header>
 	nav := &html.Node{Type: html.ElementNode, Data: atom.Nav.String()}
 	htmlg.AppendChildren(nav, n.tabs()...)
-	div := htmlg.DivClass("list-entry-header", nav)
-	return []*html.Node{div}
+	header := &html.Node{
+		Type: html.ElementNode, Data: atom.Header.String(),
+		Attr:       []html.Attribute{{Key: atom.Class.String(), Val: "list-entry-header"}},
+		FirstChild: nav,
+	}
+	return []*html.Node{header}
 }
 
 // tabs renders the HTML nodes for <nav> element with tab header links.

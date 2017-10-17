@@ -8,13 +8,4 @@
 
 		<h1>{{.Change.Title}} <span class="gray">#{{.Change.ID}}</span></h1>
 		<div id="change-state-badge" style="margin-bottom: 20px;">{{render (changeStateBadge .Change)}}</div>
-		{{.Tabnav "Files"}}
-
-{{define "FileDiff"}}
-<div class="list-entry list-entry-border">
-	<header class="list-entry-header">{{.Title}}</header>
-	<div class="list-entry-body">
-		<pre class="highlight-diff">{{.Diff}}</pre>
-	</div>
-</div>
-{{end}}
+		{{.Tabnav "Commits"}}

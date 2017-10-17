@@ -159,6 +159,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 	case len(elems) == 1:
 		return h.ChangeHandler(w, req, changeID)
 
+	// "/{changeID}/commits".
+	case len(elems) == 2 && elems[1] == "commits":
+		return h.ChangeCommitsHandler(w, req, changeID)
+
 	// "/{changeID}/files".
 	case len(elems) == 2 && elems[1] == "files":
 		return h.ChangeFilesHandler(w, req, changeID)
@@ -320,6 +324,39 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 		return fmt.Errorf("t.ExecuteTemplate: %v", err)
 	}
 	return nil
+}
+
+func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request, changeID uint64) error {
+	if req.Method != http.MethodGet {
+		return httperror.Method{Allowed: []string{http.MethodGet}}
+	}
+	state, err := h.state(req, changeID)
+	if err != nil {
+		return err
+	}
+	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.IssueID)
+	if err != nil {
+		return err
+	}
+	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	err = h.static.ExecuteTemplate(w, "change-commits.html.tmpl", &state)
+	if err != nil {
+		return err
+	}
+	var commits []Commit
+	for _, c := range cs {
+		commits = append(commits, Commit{Commit: c})
+	}
+	err = htmlg.RenderComponents(w, Commits{Commits: commits})
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(w, `</body></html>`)
+	return err
 }
 
 func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, changeID uint64) error {

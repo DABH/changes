@@ -51,6 +51,7 @@ func main() {
 	js.Global.Set("PostComment", PostComment)
 	js.Global.Set("EditComment", jsutil.Wrap(f.EditComment))
 	js.Global.Set("TabSupportKeyDownHandler", jsutil.Wrap(tabsupport.KeyDownHandler))
+	js.Global.Set("ToggleDetails", jsutil.Wrap(ToggleDetails))
 
 	switch readyState := document.ReadyState(); readyState {
 	case "loading":
@@ -330,4 +331,16 @@ func switchWriteTab(container dom.Element, commentEditor *dom.HTMLTextAreaElemen
 	}
 
 	commentEditor.Focus()
+}
+
+func ToggleDetails(el dom.HTMLElement) {
+	container := getAncestorByClassName(el, "commit-container").(dom.HTMLElement)
+	details := container.QuerySelector("pre.commit-details").(dom.HTMLElement)
+
+	switch details.Style().GetPropertyValue("display") {
+	default:
+		details.Style().SetProperty("display", "none", "")
+	case "none":
+		details.Style().SetProperty("display", "block", "")
+	}
 }
