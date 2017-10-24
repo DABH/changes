@@ -461,7 +461,10 @@ func (s state) Tabnav(selected string) template.HTML {
 				Selected: selected == "Discussion",
 			},
 			{
-				Content:  iconText{Icon: octiconssvg.GitCommit, Text: "Commits"},
+				Content: contentCounter{
+					Content: iconText{Icon: octiconssvg.GitCommit, Text: "Commits"},
+					Count:   s.Change.Commits,
+				},
 				URL:      fmt.Sprintf("%s/%d/commits", s.BaseURI, s.IssueID),
 				Selected: selected == "Commits",
 			},

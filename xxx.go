@@ -58,6 +58,18 @@ func (t tab) Render() []*html.Node {
 	return []*html.Node{a}
 }
 
+type contentCounter struct {
+	Content htmlg.Component
+	Count   int
+}
+
+func (cc contentCounter) Render() []*html.Node {
+	var ns []*html.Node
+	ns = append(ns, cc.Content.Render()...)
+	ns = append(ns, htmlg.SpanClass("counter", htmlg.Text(fmt.Sprint(cc.Count))))
+	return ns
+}
+
 // iconText is an icon with text on the right.
 // Icon must be not nil.
 type iconText struct {
