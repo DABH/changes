@@ -62,7 +62,7 @@ func (c Commit) Render() []*html.Node {
 				Type: html.ElementNode, Data: atom.A.String(),
 				Attr: []html.Attribute{
 					{Key: atom.Class.String(), Val: "black"},
-					{Key: atom.Href.String(), Val: "commit/" + c.SHA},
+					{Key: atom.Href.String(), Val: "files/" + c.SHA},
 				},
 				FirstChild: htmlg.Strong(commitSubject),
 			},

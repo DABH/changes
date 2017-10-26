@@ -6,9 +6,12 @@ import (
 	"html/template"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/shurcooL/highlight_diff"
 	"github.com/shurcooL/htmlg"
+	issuescomponent "github.com/shurcooL/issuesapp/component"
+	"github.com/shurcooL/users"
 	"github.com/sourcegraph/annotate"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -84,6 +87,27 @@ func (it iconText) Render() []*html.Node {
 	})
 	text := htmlg.Text(it.Text)
 	return []*html.Node{icon, text}
+}
+
+// commitMessage ...
+type commitMessage struct {
+	CommitHash string
+	Subject    string
+	Body       string
+	Author     users.User
+	AuthorTime time.Time
+}
+
+func (c commitMessage) Avatar() template.HTML {
+	return template.HTML(htmlg.RenderComponentsString(issuescomponent.Avatar{User: c.Author, Size: 24}))
+}
+
+func (c commitMessage) User() template.HTML {
+	return template.HTML(htmlg.RenderComponentsString(issuescomponent.User{User: c.Author}))
+}
+
+func (c commitMessage) Time() template.HTML {
+	return template.HTML(htmlg.RenderComponentsString(issuescomponent.Time{Time: c.AuthorTime}))
 }
 
 // fileDiff represents a file diff for display purposes.

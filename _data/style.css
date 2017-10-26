@@ -29,10 +29,12 @@ div.list-entry-border {
 }
 header.list-entry-header {
 	font-size: 13px;
-	background-color: #f8f8f8;
 	padding: 10px;
 	border-radius: 4px 4px 0 0;
 	border-bottom: 1px solid #eee;
+}
+div:not(.commit-message) header.list-entry-header {
+	background-color: #f8f8f8;
 }
 .hash-selected div.list-entry-border {
 	border: 1px solid #8ca2d9;
@@ -55,6 +57,32 @@ div.list-entry-body {
 div.multilist-entry:not(:first-of-type) {
 	border: 0px solid #ddd;
 	border-top-width: 1px;
+}
+
+div.commit-message.list-entry-border {
+	background-color: #ecf3ff;
+}
+.commit-message header.list-entry-header {
+	font-size: 14px;
+}
+.commit-message div.list-entry-body {
+	background-color: #fff;
+}
+.commit-message pre {
+	font-family: Go;
+	font-size: 14px;
+	tab-size: 4;
+	margin: 0;
+}
+.commit-message div.list-entry-body {
+	font-size: 13px;
+	line-height: 24px;
+	padding: 6px;
+}
+
+code {
+	font-family: "Go Mono";
+	font-size: 12px;
 }
 
 /* Needed in issuesapp only because of something in parent containers... */

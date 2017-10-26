@@ -165,7 +165,12 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 
 	// "/{changeID}/files".
 	case len(elems) == 2 && elems[1] == "files":
-		return h.ChangeFilesHandler(w, req, changeID)
+		return h.ChangeFilesHandler(w, req, changeID, "")
+
+	// "/{changeID}/files/{commitID}".
+	case len(elems) == 3 && elems[1] == "files":
+		commitID := elems[2]
+		return h.ChangeFilesHandler(w, req, changeID, commitID)
 
 	default:
 		return httperror.HTTP{Code: http.StatusNotFound, Err: errors.New("no route")}
@@ -338,7 +343,7 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	if err != nil {
 		return err
 	}
-	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID)
+	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID, nil)
 	if err != nil {
 		return err
 	}
@@ -359,7 +364,7 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	return err
 }
 
-func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, changeID uint64) error {
+func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, changeID uint64, commitID string) error {
 	if req.Method != http.MethodGet {
 		return httperror.Method{Allowed: []string{http.MethodGet}}
 	}
@@ -371,7 +376,28 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	if err != nil {
 		return err
 	}
-	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.IssueID)
+	var (
+		opt    *changes.ListCommitsOptions
+		commit commitMessage
+	)
+	if commitID != "" {
+		opt = &changes.ListCommitsOptions{
+			Commit: commitID,
+		}
+		cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID, opt)
+		if err != nil {
+			return err
+		}
+		subject, body := splitCommitMessage(cs[0].Message)
+		commit = commitMessage{
+			CommitHash: cs[0].SHA,
+			Subject:    subject,
+			Body:       body,
+			Author:     cs[0].Author,
+			AuthorTime: cs[0].AuthorTime,
+		}
+	}
+	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.IssueID, opt)
 	if err != nil {
 		return err
 	}
@@ -383,6 +409,12 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	err = h.static.ExecuteTemplate(w, "change-files.html.tmpl", &state)
 	if err != nil {
 		return err
+	}
+	if commitID != "" {
+		err = h.static.ExecuteTemplate(w, "CommitMessage", commit)
+		if err != nil {
+			return err
+		}
 	}
 	for _, f := range fileDiffs {
 		err = h.static.ExecuteTemplate(w, "FileDiff", fileDiff{FileDiff: f})
