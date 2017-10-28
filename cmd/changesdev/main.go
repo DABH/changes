@@ -29,7 +29,6 @@ import (
 	"dmitri.shuralyov.com/changes/maintner"
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/google/go-github/github"
-	"github.com/gorilla/mux"
 	"github.com/gregjones/httpcache"
 	"github.com/shurcooL/githubql"
 	"github.com/shurcooL/httpgzip"
@@ -106,8 +105,6 @@ func main() {
 	}
 	changesApp := changesapp.New(service, nil, changesOpt)
 
-	r := mux.NewRouter()
-
 	issuesHandler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		prefixLen := len("/changes")
 		if prefix := req.URL.Path[:prefixLen]; req.URL.Path == prefix+"/" {
@@ -127,19 +124,19 @@ func main() {
 		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, "/changes"))
 		changesApp.ServeHTTP(w, req)
 	})
-	r.Path("/changes").Handler(issuesHandler)
-	r.PathPrefix("/changes/").Handler(issuesHandler)
+	http.Handle("/changes", issuesHandler)
+	http.Handle("/changes/", issuesHandler)
 
-	r.HandleFunc("/login/github", func(w http.ResponseWriter, req *http.Request) {
+	http.HandleFunc("/login/github", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		fmt.Fprintln(w, "Sorry, this is just a demo instance and it doesn't support signing in.")
 	})
 
 	emojisHandler := httpgzip.FileServer(emojis.Assets, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed})
-	r.PathPrefix("/emojis/").Handler(http.StripPrefix("/emojis", emojisHandler))
+	http.Handle("/emojis/", http.StripPrefix("/emojis", emojisHandler))
 
 	printServingAt(*httpFlag)
-	err := http.ListenAndServe(*httpFlag, r)
+	err := http.ListenAndServe(*httpFlag, nil)
 	if err != nil {
 		log.Fatalln("ListenAndServe:", err)
 	}
