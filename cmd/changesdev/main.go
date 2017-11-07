@@ -33,7 +33,6 @@ import (
 	"github.com/shurcooL/githubql"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/reactions/emojis"
-	ghusers "github.com/shurcooL/users/githubapi"
 	"golang.org/x/build/maintner/godata"
 	"golang.org/x/oauth2"
 )
@@ -79,8 +78,11 @@ func main() {
 		ghV3 := github.NewClient(httpClient)
 		ghV4 := githubql.NewClient(httpClient)
 
-		usersService := ghusers.NewService(ghV3)
-		service = githubapi.NewService(ghV3, ghV4, nil, usersService)
+		var err error
+		service, err = githubapi.NewService(ghV3, ghV4, nil)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	changesOpt := changesapp.Options{
