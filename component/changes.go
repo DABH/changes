@@ -41,9 +41,11 @@ func (i Changes) Render() []*html.Node {
 			Attr: []html.Attribute{{Key: atom.Style.String(), Val: "text-align: center; margin-top: 80px; margin-bottom: 80px;"}},
 		}
 		switch i.Filter {
-		default:
-			div.AppendChild(htmlg.Text(fmt.Sprintf("There are no %s changes.", i.Filter)))
-		case changes.AllStates:
+		case changes.FilterOpen:
+			div.AppendChild(htmlg.Text("There are no open changes."))
+		case changes.FilterClosedMerged:
+			div.AppendChild(htmlg.Text("There are no closed/merged changes."))
+		case changes.FilterAll:
 			div.AppendChild(htmlg.Text("There are no changes."))
 		}
 		ns = append(ns, div)

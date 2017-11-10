@@ -190,15 +190,15 @@ func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error
 	if err != nil {
 		return httperror.BadRequest{Err: err}
 	}
-	is, err := h.is.List(req.Context(), state.RepoSpec, changes.ListOptions{State: filter})
+	is, err := h.is.List(req.Context(), state.RepoSpec, changes.ListOptions{Filter: filter})
 	if err != nil {
 		return err
 	}
-	openCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{State: changes.StateFilter(changes.OpenState)})
+	openCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{Filter: changes.FilterOpen})
 	if err != nil {
 		return fmt.Errorf("changes.Count(open): %v", err)
 	}
-	closedCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{State: changes.StateFilter(changes.ClosedState)})
+	closedCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{Filter: changes.FilterClosedMerged})
 	if err != nil {
 		return fmt.Errorf("changes.Count(closed): %v", err)
 	}
@@ -237,11 +237,11 @@ func stateFilter(query url.Values) (changes.StateFilter, error) {
 	selectedTabName := query.Get(stateQueryKey)
 	switch selectedTabName {
 	case "":
-		return changes.StateFilter(changes.OpenState), nil
+		return changes.FilterOpen, nil
 	case "closed":
-		return changes.StateFilter(changes.ClosedState), nil
+		return changes.FilterClosedMerged, nil
 	case "all":
-		return changes.AllStates, nil
+		return changes.FilterAll, nil
 	default:
 		return "", fmt.Errorf("unsupported state filter value: %q", selectedTabName)
 	}

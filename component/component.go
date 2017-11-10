@@ -145,11 +145,11 @@ func (cb ChangeBadge) Render() []*html.Node {
 	)
 	switch cb.State {
 	case changes.OpenState:
-		icon = octiconssvg.IssueOpened()
+		icon = octiconssvg.GitPullRequest()
 		text = "Open"
 		color = "#6cc644"
 	case changes.ClosedState:
-		icon = octiconssvg.IssueClosed()
+		icon = octiconssvg.GitPullRequest()
 		text = "Closed"
 		color = "#bd2c00"
 	case changes.MergedState:
@@ -197,14 +197,14 @@ func (ii ChangeIcon) Render() []*html.Node {
 	)
 	switch ii.State {
 	case changes.OpenState:
-		icon = octiconssvg.IssueOpened()
+		icon = octiconssvg.GitPullRequest()
 		color = "#6cc644"
 	case changes.ClosedState:
-		icon = octiconssvg.IssueClosed()
+		icon = octiconssvg.GitPullRequest()
 		color = "#bd2c00"
 	case changes.MergedState:
 		icon = octiconssvg.GitMerge()
-		color = "#bd2c00" // TODO.
+		color = "#6f42c1"
 	}
 	span := &html.Node{
 		Type: html.ElementNode, Data: atom.Span.String(),
