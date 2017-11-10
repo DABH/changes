@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -343,7 +344,7 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	if err != nil {
 		return err
 	}
-	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID, nil)
+	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID)
 	if err != nil {
 		return err
 	}
@@ -364,6 +365,8 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	return err
 }
 
+// ChangeFilesHandler is the handler for "/{changeID}/files" and "/{changeID}/files/{commitID}" endpoints.
+// commitID is empty string for all files, or the SHA of a single commit for single-commit view.
 func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, changeID uint64, commitID string) error {
 	if req.Method != http.MethodGet {
 		return httperror.Method{Allowed: []string{http.MethodGet}}
@@ -376,26 +379,34 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	if err != nil {
 		return err
 	}
-	var (
-		opt    *changes.ListCommitsOptions
-		commit commitMessage
-	)
+	var commit commitMessage
 	if commitID != "" {
-		opt = &changes.ListCommitsOptions{
-			Commit: commitID,
-		}
-		cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID, opt)
+		cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID)
 		if err != nil {
 			return err
 		}
-		subject, body := splitCommitMessage(cs[0].Message)
+		i := commitIndex(cs, commitID)
+		if i == -1 {
+			return os.ErrNotExist
+		}
+		subject, body := splitCommitMessage(cs[i].Message)
 		commit = commitMessage{
-			CommitHash: cs[0].SHA,
+			CommitHash: cs[i].SHA,
 			Subject:    subject,
 			Body:       body,
-			Author:     cs[0].Author,
-			AuthorTime: cs[0].AuthorTime,
+			Author:     cs[i].Author,
+			AuthorTime: cs[i].AuthorTime,
 		}
+		if prev := i - 1; prev >= 0 {
+			commit.PrevSHA = cs[prev].SHA
+		}
+		if next := i + 1; next < len(cs) {
+			commit.NextSHA = cs[next].SHA
+		}
+	}
+	var opt *changes.ListCommitsOptions
+	if commitID != "" {
+		opt = &changes.ListCommitsOptions{Commit: commitID}
 	}
 	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.IssueID, opt)
 	if err != nil {
@@ -424,6 +435,17 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	}
 	_, err = io.WriteString(w, `</body></html>`)
 	return err
+}
+
+// commitIndex returns the index of commit with SHA equal to commitID,
+// or -1 if not found.
+func commitIndex(cs []changes.Commit, commitID string) int {
+	for i := range cs {
+		if cs[i].SHA == commitID {
+			return i
+		}
+	}
+	return -1
 }
 
 func (h *handler) state(req *http.Request, changeID uint64) (state, error) {

@@ -17,7 +17,16 @@
 			<pre style="flex-grow: 1;"><strong>{{.Subject}}</strong>{{with .Body}}
 
 {{.}}{{end}}</pre>
-			<span>Button</span>
+			{{with .PrevSHA}}
+				<a href="{{.}}">{{octicon "arrow-left"}}</a>
+			{{else}}
+				<span style="color: gray;">{{octicon "arrow-left"}}</span>
+			{{end}}
+			{{with .NextSHA}}
+				<a href="{{.}}">{{octicon "arrow-right"}}</a>
+			{{else}}
+				<span style="color: gray;">{{octicon "arrow-right"}}</span>
+			{{end}}
 		</div>
 	</header>
 	<div class="list-entry-body">

@@ -43,7 +43,7 @@ func main() {
 	flag.Parse()
 
 	var service changes.Service
-	switch 2 {
+	switch 0 {
 	case 0:
 		cacheTransport := httpcache.NewMemoryCacheTransport()
 		gerrit, err := gerrit.NewClient("https://go-review.googlesource.com/", &http.Client{Transport: cacheTransport})

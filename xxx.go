@@ -96,6 +96,8 @@ type commitMessage struct {
 	Body       string
 	Author     users.User
 	AuthorTime time.Time
+
+	PrevSHA, NextSHA string // Empty if none.
 }
 
 func (c commitMessage) Avatar() template.HTML {
