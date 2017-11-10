@@ -7,25 +7,25 @@ import (
 	"github.com/shurcooL/issues"
 )
 
-// issueItem represents an issue item for display purposes.
-type issueItem struct {
-	// IssueItem can be one of issues.Comment, issues.Event.
-	IssueItem interface{}
+// timelineItem represents a timeline item for display purposes.
+type timelineItem struct {
+	// TimelineItem can be one of issues.Comment, issues.Event.
+	TimelineItem interface{}
 }
 
-func (i issueItem) TemplateName() string {
-	switch i.IssueItem.(type) {
+func (i timelineItem) TemplateName() string {
+	switch i.TimelineItem.(type) {
 	case issues.Comment:
 		return "comment"
 	case issues.Event:
 		return "event"
 	default:
-		panic(fmt.Errorf("unknown item type %T", i.IssueItem))
+		panic(fmt.Errorf("unknown item type %T", i.TimelineItem))
 	}
 }
 
-func (i issueItem) CreatedAt() time.Time {
-	switch i := i.IssueItem.(type) {
+func (i timelineItem) CreatedAt() time.Time {
+	switch i := i.TimelineItem.(type) {
 	case issues.Comment:
 		return i.CreatedAt
 	case issues.Event:
@@ -35,8 +35,8 @@ func (i issueItem) CreatedAt() time.Time {
 	}
 }
 
-func (i issueItem) ID() uint64 {
-	switch i := i.IssueItem.(type) {
+func (i timelineItem) ID() uint64 {
+	switch i := i.TimelineItem.(type) {
 	case issues.Comment:
 		return i.ID
 	case issues.Event:
@@ -47,7 +47,7 @@ func (i issueItem) ID() uint64 {
 }
 
 // byCreatedAtID implements sort.Interface.
-type byCreatedAtID []issueItem
+type byCreatedAtID []timelineItem
 
 func (s byCreatedAtID) Len() int { return len(s) }
 func (s byCreatedAtID) Less(i, j int) bool {

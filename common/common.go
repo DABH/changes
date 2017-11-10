@@ -9,7 +9,7 @@ type State struct {
 	BaseURI          string
 	ReqPath          string
 	RepoSpec         string
-	IssueID          uint64 `json:",omitempty"` // IssueID is the current issue ID, or 0 if not applicable (e.g., current page is /new).
+	ChangeID         uint64 `json:",omitempty"` // ChangeID is the current change ID, or 0 if not applicable (e.g., current page is /changes).
 	CurrentUser      users.User
 	DisableReactions bool
 	DisableUsers     bool

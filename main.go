@@ -79,8 +79,8 @@ func New(service changes.Service, users users.Service, opt Options) http.Handler
 	}
 }
 
-// RepoSpecContextKey is a context key for the request's issues.RepoSpec.
-// That value specifies which repo the issues are to be displayed for.
+// RepoSpecContextKey is a context key for the request's repo spec.
+// That value specifies which repo the changes are to be displayed for.
 // The associated value will be of type string.
 var RepoSpecContextKey = &contextKey{"RepoSpec"}
 
@@ -89,9 +89,9 @@ var RepoSpecContextKey = &contextKey{"RepoSpec"}
 // The associated value will be of type string.
 var BaseURIContextKey = &contextKey{"BaseURI"}
 
-// Options for configuring issues app.
+// Options for configuring changes app.
 type Options struct {
-	Notifications    notifications.Service // If not nil, issues containing unread notifications are highlighted.
+	Notifications    notifications.Service // If not nil, changes containing unread notifications are highlighted.
 	DisableReactions bool                  // Disable all support for displaying and toggling reactions.
 
 	HeadPre, HeadPost template.HTML
@@ -146,14 +146,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 
 	// Handle "/".
 	if req.URL.Path == "/" {
-		return h.IssuesHandler(w, req)
+		return h.ChangesHandler(w, req)
 	}
 
 	// Handle "/{changeID}" and "/{changeID}/...".
 	elems := strings.SplitN(req.URL.Path[1:], "/", 3)
 	changeID, err := strconv.ParseUint(elems[0], 10, 64)
 	if err != nil {
-		return httperror.HTTP{Code: http.StatusNotFound, Err: fmt.Errorf("invalid issue ID %q: %v", elems[0], err)}
+		return httperror.HTTP{Code: http.StatusNotFound, Err: fmt.Errorf("invalid change ID %q: %v", elems[0], err)}
 	}
 	switch {
 	// "/{changeID}".
@@ -178,7 +178,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 	}
 }
 
-func (h *handler) IssuesHandler(w http.ResponseWriter, req *http.Request) error {
+func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != http.MethodGet {
 		return httperror.Method{Allowed: []string{http.MethodGet}}
 	}
@@ -196,18 +196,18 @@ func (h *handler) IssuesHandler(w http.ResponseWriter, req *http.Request) error 
 	}
 	openCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{State: changes.StateFilter(changes.OpenState)})
 	if err != nil {
-		return fmt.Errorf("issues.Count(open): %v", err)
+		return fmt.Errorf("changes.Count(open): %v", err)
 	}
 	closedCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{State: changes.StateFilter(changes.ClosedState)})
 	if err != nil {
-		return fmt.Errorf("issues.Count(closed): %v", err)
+		return fmt.Errorf("changes.Count(closed): %v", err)
 	}
 	var es []component.ChangeEntry
 	for _, i := range is {
 		es = append(es, component.ChangeEntry{Change: i, BaseURI: state.BaseURI})
 	}
 	es = state.augmentUnread(req.Context(), es, h.is, h.Notifications)
-	state.Changes = component.Issues{
+	state.Changes = component.Changes{
 		IssuesNav: component.IssuesNav{
 			OpenCount:     openCount,
 			ClosedCount:   closedCount,
@@ -219,7 +219,7 @@ func (h *handler) IssuesHandler(w http.ResponseWriter, req *http.Request) error 
 		Entries: es,
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = h.static.ExecuteTemplate(w, "issues.html.tmpl", &state)
+	err = h.static.ExecuteTemplate(w, "changes.html.tmpl", &state)
 	if err != nil {
 		return fmt.Errorf("h.static.ExecuteTemplate: %v", err)
 	}
@@ -227,11 +227,11 @@ func (h *handler) IssuesHandler(w http.ResponseWriter, req *http.Request) error 
 }
 
 const (
-	// stateQueryKey is name of query key for controlling issue state filter.
+	// stateQueryKey is name of query key for controlling change state filter.
 	stateQueryKey = "state"
 )
 
-// stateFilter parses the issue state filter from query,
+// stateFilter parses the change state filter from query,
 // returning an error if the value is unsupported.
 func stateFilter(query url.Values) (changes.StateFilter, error) {
 	selectedTabName := query.Get(stateQueryKey)
@@ -298,24 +298,24 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 	if err != nil {
 		return err
 	}
-	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.IssueID)
+	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
-	cs, err := h.is.ListComments(req.Context(), state.RepoSpec, state.IssueID, nil)
+	cs, err := h.is.ListComments(req.Context(), state.RepoSpec, state.ChangeID, nil)
 	if err != nil {
 		return fmt.Errorf("changes.ListComments: %v", err)
 	}
-	es, err := h.is.ListEvents(req.Context(), state.RepoSpec, state.IssueID, nil)
+	es, err := h.is.ListEvents(req.Context(), state.RepoSpec, state.ChangeID, nil)
 	if err != nil {
 		return fmt.Errorf("changes.ListEvents: %v", err)
 	}
-	var items []issueItem
+	var items []timelineItem
 	for _, comment := range cs {
-		items = append(items, issueItem{comment})
+		items = append(items, timelineItem{comment})
 	}
 	for _, event := range es {
-		items = append(items, issueItem{event})
+		items = append(items, timelineItem{event})
 	}
 	sort.Sort(byCreatedAtID(items))
 	state.Items = items
@@ -325,7 +325,7 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 		return fmt.Errorf("loadTemplates: %v", err)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = t.ExecuteTemplate(w, "issue.html.tmpl", &state)
+	err = t.ExecuteTemplate(w, "change.html.tmpl", &state)
 	if err != nil {
 		return fmt.Errorf("t.ExecuteTemplate: %v", err)
 	}
@@ -340,11 +340,11 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	if err != nil {
 		return err
 	}
-	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.IssueID)
+	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
-	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID)
+	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
@@ -375,13 +375,13 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	if err != nil {
 		return err
 	}
-	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.IssueID)
+	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
 	var commit commitMessage
 	if commitID != "" {
-		cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.IssueID)
+		cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.ChangeID)
 		if err != nil {
 			return err
 		}
@@ -408,7 +408,7 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	if commitID != "" {
 		opt = &changes.GetDiffOptions{Commit: commitID}
 	}
-	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.IssueID, opt)
+	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.ChangeID, opt)
 	if err != nil {
 		return err
 	}
@@ -454,14 +454,14 @@ func (h *handler) state(req *http.Request, changeID uint64) (state, error) {
 	//       to compute it here internally by using req.RequestURI and BaseURI.
 	reqPath := req.URL.Path
 	if reqPath == "/" {
-		reqPath = "" // This is needed so that absolute URL for root view, i.e., /issues, is "/issues" and not "/issues/" because of "/issues" + "/".
+		reqPath = "" // This is needed so that absolute URL for root view, i.e., /changes, is "/changes" and not "/changes/" because of "/changes" + "/".
 	}
 	b := state{
 		State: common.State{
 			BaseURI:  req.Context().Value(BaseURIContextKey).(string),
 			ReqPath:  reqPath,
 			RepoSpec: req.Context().Value(RepoSpecContextKey).(string),
-			IssueID:  changeID,
+			ChangeID: changeID,
 		},
 	}
 	b.HeadPre = h.HeadPre
@@ -500,9 +500,9 @@ type state struct {
 
 	common.State
 
-	Changes component.Issues
+	Changes component.Changes
 	Change  changes.Change
-	Items   []issueItem
+	Items   []timelineItem
 }
 
 func (s state) Tabnav(selected string) template.HTML {
@@ -511,7 +511,7 @@ func (s state) Tabnav(selected string) template.HTML {
 		Tabs: []tab{
 			{
 				Content:  iconText{Icon: octiconssvg.CommentDiscussion, Text: "Discussion"},
-				URL:      fmt.Sprintf("%s/%d", s.BaseURI, s.IssueID),
+				URL:      fmt.Sprintf("%s/%d", s.BaseURI, s.ChangeID),
 				Selected: selected == "Discussion",
 			},
 			{
@@ -519,12 +519,12 @@ func (s state) Tabnav(selected string) template.HTML {
 					Content: iconText{Icon: octiconssvg.GitCommit, Text: "Commits"},
 					Count:   s.Change.Commits,
 				},
-				URL:      fmt.Sprintf("%s/%d/commits", s.BaseURI, s.IssueID),
+				URL:      fmt.Sprintf("%s/%d/commits", s.BaseURI, s.ChangeID),
 				Selected: selected == "Commits",
 			},
 			{
 				Content:  iconText{Icon: octiconssvg.Diff, Text: "Files"},
-				URL:      fmt.Sprintf("%s/%d/files", s.BaseURI, s.IssueID),
+				URL:      fmt.Sprintf("%s/%d/files", s.BaseURI, s.ChangeID),
 				Selected: selected == "Files",
 			},
 		},
@@ -548,7 +548,7 @@ func loadTemplates(state common.State, bodyPre string) (*template.Template, erro
 			return a.UserSpec == b.UserSpec
 		},
 		"reactableID": func(commentID uint64) string {
-			return fmt.Sprintf("%d/%d", state.IssueID, commentID)
+			return fmt.Sprintf("%d/%d", state.ChangeID, commentID)
 		},
 		"reactionsBar": func(reactions []reactions.Reaction, reactableID string) htmlg.Component {
 			return reactionscomponent.ReactionsBar{

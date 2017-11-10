@@ -10,14 +10,14 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// IssuesNav is a navigation component for displaying a header for a list of issues.
-// It contains tabs to switch between viewing open and closed issues.
+// IssuesNav is a navigation component for displaying a header for a list of changes.
+// It contains tabs to switch between viewing open and closed changes.
 type IssuesNav struct {
-	OpenCount     uint64     // Open issues count.
-	ClosedCount   uint64     // Closed issues count.
+	OpenCount     uint64     // Open changes count.
+	ClosedCount   uint64     // Closed changes count.
 	Path          string     // URL path of current page (needed to generate correct links).
 	Query         url.Values // URL query of current page (needed to generate correct links).
-	StateQueryKey string     // Name of query key for controlling issue state filter. Constant, but provided externally.
+	StateQueryKey string     // Name of query key for controlling change state filter. Constant, but provided externally.
 }
 
 func (n IssuesNav) Render() []*html.Node {
@@ -83,19 +83,19 @@ func (n IssuesNav) rawQuery(tabName string) string {
 
 // OpenIssuesTab is an "Open Issues Tab" component.
 type OpenIssuesTab struct {
-	Count uint64 // Count of open issues.
+	Count uint64 // Count of open changes.
 }
 
 func (t OpenIssuesTab) Render() []*html.Node {
 	// TODO: Make this much nicer.
-	// <span style="margin-right: 4px;">{{octicon "issue-opened"}}</span>
+	// <span style="margin-right: 4px;">{{octicon "git-pull-request"}}</span>
 	// {{.Count}} Open
 	icon := &html.Node{
 		Type: html.ElementNode, Data: atom.Span.String(),
 		Attr: []html.Attribute{
 			{Key: atom.Style.String(), Val: "margin-right: 4px;"},
 		},
-		FirstChild: octiconssvg.IssueOpened(),
+		FirstChild: octiconssvg.GitPullRequest(),
 	}
 	text := htmlg.Text(fmt.Sprintf("%d Open", t.Count))
 	return []*html.Node{icon, text}
@@ -103,7 +103,7 @@ func (t OpenIssuesTab) Render() []*html.Node {
 
 // ClosedIssuesTab is a "Closed Issues Tab" component.
 type ClosedIssuesTab struct {
-	Count uint64 // Count of closed issues.
+	Count uint64 // Count of closed changes.
 }
 
 func (t ClosedIssuesTab) Render() []*html.Node {

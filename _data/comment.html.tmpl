@@ -1,6 +1,6 @@
 {{/* Dot is an issues.Comment. */}}
 {{define "comment"}}
-<div class="comment-edit-container">
+<div>
 	<div>
 		<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
 		<div id="comment-{{.ID}}" style="display: flex;" class="list-entry">
@@ -25,9 +25,6 @@
 				</div>
 			</div>
 		</div>
-	</div>
-	<div style="display: none;">
-		{{template "edit-comment" .}}
 	</div>
 	{{if (not state.DisableReactions)}}
 		{{render (reactionsBar .Reactions (reactableID .ID))}}

@@ -10,19 +10,19 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// Issues is a component that displays a page of changes,
+// Changes is a component that displays a page of changes,
 // with a navigation bar on top.
-type Issues struct {
+type Changes struct {
 	IssuesNav IssuesNav
 	Filter    changes.StateFilter
 	Entries   []ChangeEntry
 }
 
-func (i Issues) Render() []*html.Node {
+func (i Changes) Render() []*html.Node {
 	// TODO: Make this much nicer.
 	// <div class="list-entry list-entry-border">
 	// 	{{render .IssuesNav}}
-	// 	{{with .Issues}}{{range .}}
+	// 	{{with .Entries}}{{range .}}
 	// 		{{render .}}
 	// 	{{end}}{{else}}
 	// 		<div style="text-align: center; margin-top: 80px; margin-bottom: 80px;">There are no {{.Filter}} changes.</div>
