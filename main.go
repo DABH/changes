@@ -404,9 +404,9 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 			commit.NextSHA = cs[next].SHA
 		}
 	}
-	var opt *changes.ListCommitsOptions
+	var opt *changes.GetDiffOptions
 	if commitID != "" {
-		opt = &changes.ListCommitsOptions{Commit: commitID}
+		opt = &changes.GetDiffOptions{Commit: commitID}
 	}
 	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.IssueID, opt)
 	if err != nil {
