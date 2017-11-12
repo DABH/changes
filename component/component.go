@@ -26,20 +26,12 @@ func (e Event) Render() []*html.Node {
 	// <div class="list-entry event event-{{.Type}}">
 	// 	{{.Icon}}
 	// 	<div class="event-header">
-	// 		<img class="inline-avatar" width="16" height="16" src="{{.Actor.AvatarURL}}">
-	// 		{{render (user .Actor)}} {{.Text}} {{render (time .CreatedAt)}}
+	// 		{{render (avatar .Actor)}} {{render (user .Actor)}} {{.Text}} {{render (time .CreatedAt)}}
 	// 	</div>
 	// </div>
 
 	div := htmlg.DivClass("event-header")
-	image := &html.Node{
-		Type: html.ElementNode, Data: atom.Img.String(),
-		Attr: []html.Attribute{
-			{Key: atom.Style.String(), Val: "width: 16px; height: 16px; border-radius: 2px; vertical-align: middle; margin-right: 4px;"},
-			{Key: atom.Src.String(), Val: e.Event.Actor.AvatarURL},
-		},
-	}
-	div.AppendChild(image)
+	htmlg.AppendChildren(div, Avatar{User: e.Event.Actor, Size: 16, Inline: true}.Render()...)
 	htmlg.AppendChildren(div, User{e.Event.Actor}.Render()...)
 	div.AppendChild(htmlg.Text(" "))
 	htmlg.AppendChildren(div, e.text()...)
@@ -72,6 +64,8 @@ func (e Event) icon() *html.Node {
 		icon = octiconssvg.Tag()
 	case issues.CommentDeleted:
 		icon = octiconssvg.X()
+	case "ReviewRequestedEvent":
+		icon = octiconssvg.Eye()
 	default:
 		icon = octiconssvg.PrimitiveDot()
 	}
@@ -105,6 +99,11 @@ func (e Event) text() []*html.Node {
 		return ns
 	case issues.CommentDeleted:
 		return []*html.Node{htmlg.Text("deleted a comment")}
+	case "ReviewRequestedEvent":
+		ns := []*html.Node{htmlg.Text("requested a review from ")}
+		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
+		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
+		return ns
 	default:
 		return []*html.Node{htmlg.Text(string(e.Event.Type))}
 	}
@@ -277,8 +276,9 @@ func (u User) Render() []*html.Node {
 
 // Avatar is an avatar component.
 type Avatar struct {
-	User users.User
-	Size int // In pixels, e.g., 48.
+	User   users.User
+	Size   int // In pixels, e.g., 48.
+	Inline bool
 }
 
 func (a Avatar) Render() []*html.Node {
@@ -286,6 +286,10 @@ func (a Avatar) Render() []*html.Node {
 	// <a style="..." href="{{.User.HTMLURL}}" tabindex=-1>
 	// 	<img style="..." width="{{.Size}}" height="{{.Size}}" src="{{.User.AvatarURL}}">
 	// </a>
+	imgStyle := "border-radius: 3px;"
+	if a.Inline {
+		imgStyle += " vertical-align: middle; margin-right: 4px;"
+	}
 	return []*html.Node{{
 		Type: html.ElementNode, Data: atom.A.String(),
 		Attr: []html.Attribute{
@@ -296,7 +300,7 @@ func (a Avatar) Render() []*html.Node {
 		FirstChild: &html.Node{
 			Type: html.ElementNode, Data: atom.Img.String(),
 			Attr: []html.Attribute{
-				{Key: atom.Style.String(), Val: "border-radius: 3px;"},
+				{Key: atom.Style.String(), Val: imgStyle},
 				{Key: atom.Width.String(), Val: fmt.Sprint(a.Size)},
 				{Key: atom.Height.String(), Val: fmt.Sprint(a.Size)},
 				{Key: atom.Src.String(), Val: a.User.AvatarURL},
