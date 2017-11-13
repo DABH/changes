@@ -13,7 +13,7 @@
 	<h1>{{.Change.Title}} <span class="gray">#{{.Change.ID}}</span></h1>
 	<div id="change-state-badge" style="margin-bottom: 20px;">{{render (changeStateBadge .Change)}}</div>
 	{{.Tabnav "Discussion"}}
-	{{range .Items}}
+	{{range .Timeline}}
 		{{template "timeline-item" .}}
 	{{end}}
 {{end}}

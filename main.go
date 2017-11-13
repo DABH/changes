@@ -302,23 +302,16 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 	if err != nil {
 		return err
 	}
-	cs, err := h.is.ListComments(req.Context(), state.RepoSpec, state.ChangeID, nil)
+	ts, err := h.is.ListTimeline(req.Context(), state.RepoSpec, state.ChangeID, nil)
 	if err != nil {
-		return fmt.Errorf("changes.ListComments: %v", err)
+		return fmt.Errorf("changes.ListTimeline: %v", err)
 	}
-	es, err := h.is.ListEvents(req.Context(), state.RepoSpec, state.ChangeID, nil)
-	if err != nil {
-		return fmt.Errorf("changes.ListEvents: %v", err)
+	var timeline []timelineItem
+	for _, item := range ts {
+		timeline = append(timeline, timelineItem{item})
 	}
-	var items []timelineItem
-	for _, comment := range cs {
-		items = append(items, timelineItem{comment})
-	}
-	for _, event := range es {
-		items = append(items, timelineItem{event})
-	}
-	sort.Sort(byCreatedAtID(items))
-	state.Items = items
+	sort.Sort(byCreatedAtID(timeline))
+	state.Timeline = timeline
 	// Call loadTemplates to set updated reactionsBar, reactableID, etc., template functions.
 	t, err := loadTemplates(state.State, h.Options.BodyPre)
 	if err != nil {
@@ -500,9 +493,9 @@ type state struct {
 
 	common.State
 
-	Changes component.Changes
-	Change  changes.Change
-	Items   []timelineItem
+	Changes  component.Changes
+	Change   changes.Change
+	Timeline []timelineItem
 }
 
 func (s state) Tabnav(selected string) template.HTML {
