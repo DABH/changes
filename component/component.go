@@ -68,6 +68,9 @@ func (e Event) icon() *html.Node {
 		icon = octiconssvg.Eye()
 	case "ReviewRequestRemovedEvent":
 		icon = octiconssvg.X()
+	case "ApprovedEvent":
+		icon = octiconssvg.Check()
+		color, backgroundColor = "#fff", "#6cc644"
 	default:
 		icon = octiconssvg.PrimitiveDot()
 	}
@@ -111,6 +114,8 @@ func (e Event) text() []*html.Node {
 		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
 		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
 		return ns
+	case "ApprovedEvent":
+		return []*html.Node{htmlg.Text("approved these changes")}
 	default:
 		return []*html.Node{htmlg.Text(string(e.Event.Type))}
 	}

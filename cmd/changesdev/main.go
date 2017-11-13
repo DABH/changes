@@ -43,10 +43,11 @@ func main() {
 	flag.Parse()
 
 	var service changes.Service
-	switch 0 {
+	switch 2 {
 	case 0:
 		cacheTransport := httpcache.NewMemoryCacheTransport()
 		gerrit, err := gerrit.NewClient("https://go-review.googlesource.com/", &http.Client{Transport: cacheTransport})
+		//gerrit, err := gerrit.NewClient("https://upspin-review.googlesource.com/", &http.Client{Transport: cacheTransport})
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -122,7 +123,11 @@ func main() {
 			req.URL.Path = "/"
 		}
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/go"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/tools"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
 		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/google/go-github"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/dustin/go-humanize"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/neugram/ng"))
 		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, "/changes"))
 		changesApp.ServeHTTP(w, req)
 	})
