@@ -66,6 +66,8 @@ func (e Event) icon() *html.Node {
 		icon = octiconssvg.X()
 	case "ReviewRequestedEvent":
 		icon = octiconssvg.Eye()
+	case "ReviewRequestRemovedEvent":
+		icon = octiconssvg.X()
 	default:
 		icon = octiconssvg.PrimitiveDot()
 	}
@@ -101,6 +103,11 @@ func (e Event) text() []*html.Node {
 		return []*html.Node{htmlg.Text("deleted a comment")}
 	case "ReviewRequestedEvent":
 		ns := []*html.Node{htmlg.Text("requested a review from ")}
+		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
+		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
+		return ns
+	case "ReviewRequestRemovedEvent":
+		ns := []*html.Node{htmlg.Text("removed the review request from ")}
 		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
 		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
 		return ns
