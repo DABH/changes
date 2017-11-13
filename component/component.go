@@ -68,6 +68,9 @@ func (e Event) icon() *html.Node {
 		icon = octiconssvg.Eye()
 	case "ReviewRequestRemovedEvent":
 		icon = octiconssvg.X()
+	case "MergedEvent":
+		icon = octiconssvg.GitMerge()
+		color, backgroundColor = "#fff", "#6f42c1"
 	case "ApprovedEvent":
 		icon = octiconssvg.Check()
 		color, backgroundColor = "#fff", "#6cc644"
@@ -113,6 +116,13 @@ func (e Event) text() []*html.Node {
 		ns := []*html.Node{htmlg.Text("removed the review request from ")}
 		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
 		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
+		return ns
+	case "MergedEvent":
+		var ns []*html.Node
+		ns = append(ns, htmlg.Text("merged commit "))
+		ns = append(ns, htmlg.Strong("d34db33f")) // TODO: e.MergedEvent.CommitID.
+		ns = append(ns, htmlg.Text(" into "))
+		ns = append(ns, htmlg.Strong("master")) // TODO: e.MergedEvent.RefName.
 		return ns
 	case "ApprovedEvent":
 		return []*html.Node{htmlg.Text("approved these changes")}
