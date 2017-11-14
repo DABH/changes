@@ -5,6 +5,7 @@ import (
 
 	"dmitri.shuralyov.com/changes"
 	"github.com/shurcooL/htmlg"
+	issuescomponent "github.com/shurcooL/issuesapp/component"
 	"github.com/shurcooL/octiconssvg"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -106,7 +107,7 @@ func (i ChangeEntry) Render() []*html.Node {
 				Type: html.ElementNode, Data: atom.Span.String(),
 				Attr: []html.Attribute{{Key: atom.Style.String(), Val: "margin-left: 4px;"}},
 			}
-			htmlg.AppendChildren(span, Label{Label: l}.Render()...)
+			htmlg.AppendChildren(span, issuescomponent.Label{Label: l}.Render()...)
 			title.AppendChild(span)
 		}
 		titleAndByline.AppendChild(title)

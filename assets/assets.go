@@ -11,7 +11,7 @@ import (
 	"github.com/shurcooL/httpfs/union"
 )
 
-// Assets contains assets for issuesapp.
+// Assets contains assets for changesapp.
 var Assets = union.New(map[string]http.FileSystem{
 	"/script.js": gopherjs_http.Package("dmitri.shuralyov.com/changes/app/frontend"),
 	"/assets":    http.Dir(importPathToDir("dmitri.shuralyov.com/changes/app/_data")),

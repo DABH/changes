@@ -27,7 +27,6 @@ import (
 	"github.com/shurcooL/httperror"
 	"github.com/shurcooL/httpfs/html/vfstemplate"
 	"github.com/shurcooL/httpgzip"
-	"github.com/shurcooL/issues"
 	"github.com/shurcooL/notifications"
 	"github.com/shurcooL/octiconssvg"
 	"github.com/shurcooL/reactions"
@@ -573,7 +572,7 @@ func loadTemplates(state common.State, bodyPre string) (*template.Template, erro
 		"render": func(c htmlg.Component) template.HTML {
 			return template.HTML(htmlg.Render(c.Render()...))
 		},
-		"event":            func(e issues.Event) htmlg.Component { return component.Event{Event: e} },
+		"event":            func(e changes.TimelineItem) htmlg.Component { return component.Event{Event: e} },
 		"changeStateBadge": func(c changes.Change) htmlg.Component { return component.ChangeStateBadge{Change: c} },
 		"time":             func(t time.Time) htmlg.Component { return component.Time{Time: t} },
 		"user":             func(u users.User) htmlg.Component { return component.User{User: u} },

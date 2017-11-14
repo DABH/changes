@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	"dmitri.shuralyov.com/changes"
+	"dmitri.shuralyov.com/changes/app/component"
 	homecomponent "github.com/shurcooL/home/component"
 	"github.com/shurcooL/htmlg"
-	issuescomponent "github.com/shurcooL/issuesapp/component"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -47,7 +47,7 @@ func (c Commit) Render() []*html.Node {
 		Type: html.ElementNode, Data: atom.Div.String(),
 		Attr: []html.Attribute{{Key: atom.Style.String(), Val: "margin-right: 6px;"}},
 	}
-	htmlg.AppendChildren(avatarDiv, issuescomponent.Avatar{User: c.Author, Size: 32}.Render()...)
+	htmlg.AppendChildren(avatarDiv, component.Avatar{User: c.Author, Size: 32}.Render()...)
 	div.AppendChild(avatarDiv)
 
 	titleAndByline := &html.Node{
@@ -74,9 +74,9 @@ func (c Commit) Render() []*html.Node {
 
 		byline := htmlg.DivClass("gray tiny")
 		byline.Attr = append(byline.Attr, html.Attribute{Key: atom.Style.String(), Val: "margin-top: 2px;"})
-		htmlg.AppendChildren(byline, issuescomponent.User{User: c.Author}.Render()...)
+		htmlg.AppendChildren(byline, component.User{User: c.Author}.Render()...)
 		byline.AppendChild(htmlg.Text(" committed "))
-		htmlg.AppendChildren(byline, issuescomponent.Time{Time: c.AuthorTime}.Render()...)
+		htmlg.AppendChildren(byline, component.Time{Time: c.AuthorTime}.Render()...)
 		titleAndByline.AppendChild(byline)
 
 		if commitBody != "" {

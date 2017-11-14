@@ -3,13 +3,12 @@ package component
 
 import (
 	"fmt"
-	"image/color"
 	"time"
 
 	"dmitri.shuralyov.com/changes"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/htmlg"
-	"github.com/shurcooL/issues"
+	issuescomponent "github.com/shurcooL/issuesapp/component"
 	"github.com/shurcooL/octiconssvg"
 	"github.com/shurcooL/users"
 	"golang.org/x/net/html"
@@ -18,7 +17,7 @@ import (
 
 // Event is an event component.
 type Event struct {
-	Event issues.Event
+	Event changes.TimelineItem
 }
 
 func (e Event) Render() []*html.Node {
@@ -31,14 +30,14 @@ func (e Event) Render() []*html.Node {
 	// </div>
 
 	div := htmlg.DivClass("event-header")
-	htmlg.AppendChildren(div, Avatar{User: e.Event.Actor, Size: 16, Inline: true}.Render()...)
+	htmlg.AppendChildren(div, Avatar{User: e.Event.Actor, Size: 16, inline: true}.Render()...)
 	htmlg.AppendChildren(div, User{e.Event.Actor}.Render()...)
 	div.AppendChild(htmlg.Text(" "))
 	htmlg.AppendChildren(div, e.text()...)
 	div.AppendChild(htmlg.Text(" "))
 	htmlg.AppendChildren(div, Time{e.Event.CreatedAt}.Render()...)
 
-	outerDiv := htmlg.DivClass(fmt.Sprintf("list-entry event event-%s", e.Event.Type),
+	outerDiv := htmlg.DivClass("list-entry event",
 		e.icon(),
 		div,
 	)
@@ -51,27 +50,27 @@ func (e Event) icon() *html.Node {
 		color           = "#767676"
 		backgroundColor = "#f3f3f3"
 	)
-	switch e.Event.Type {
-	case issues.Reopened:
-		icon = octiconssvg.PrimitiveDot()
-		color, backgroundColor = "#fff", "#6cc644"
-	case issues.Closed:
+	switch e.Event.Payload.(type) {
+	case changes.ClosedEvent:
 		icon = octiconssvg.CircleSlash()
 		color, backgroundColor = "#fff", "#bd2c00"
-	case issues.Renamed:
+	case changes.ReopenedEvent:
+		icon = octiconssvg.PrimitiveDot()
+		color, backgroundColor = "#fff", "#6cc644"
+	case changes.RenamedEvent:
 		icon = octiconssvg.Pencil()
-	case issues.Labeled, issues.Unlabeled:
+	case changes.LabeledEvent, changes.UnlabeledEvent:
 		icon = octiconssvg.Tag()
-	case issues.CommentDeleted:
+	case changes.CommentDeletedEvent:
 		icon = octiconssvg.X()
-	case "ReviewRequestedEvent":
+	case changes.ReviewRequestedEvent:
 		icon = octiconssvg.Eye()
-	case "ReviewRequestRemovedEvent":
+	case changes.ReviewRequestRemovedEvent:
 		icon = octiconssvg.X()
-	case "MergedEvent":
+	case changes.MergedEvent:
 		icon = octiconssvg.GitMerge()
 		color, backgroundColor = "#fff", "#6f42c1"
-	case "ApprovedEvent":
+	case changes.ApprovedEvent:
 		icon = octiconssvg.Check()
 		color, backgroundColor = "#fff", "#6cc644"
 	default:
@@ -88,46 +87,48 @@ func (e Event) icon() *html.Node {
 }
 
 func (e Event) text() []*html.Node {
-	switch e.Event.Type {
-	case issues.Reopened, issues.Closed:
-		return []*html.Node{htmlg.Text(fmt.Sprintf("%s this", e.Event.Type))}
-	case issues.Renamed:
-		return []*html.Node{htmlg.Text("changed the title from "), htmlg.Strong(e.Event.Rename.From), htmlg.Text(" to "), htmlg.Strong(e.Event.Rename.To)}
-	case issues.Labeled:
+	switch p := e.Event.Payload.(type) {
+	case changes.ClosedEvent:
+		return []*html.Node{htmlg.Text("closed this")}
+	case changes.ReopenedEvent:
+		return []*html.Node{htmlg.Text("reopened this")}
+	case changes.RenamedEvent:
+		return []*html.Node{htmlg.Text("changed the title from "), htmlg.Strong(p.From), htmlg.Text(" to "), htmlg.Strong(p.To)}
+	case changes.LabeledEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("added the "))
-		ns = append(ns, Label{Label: *e.Event.Label}.Render()...)
+		ns = append(ns, issuescomponent.Label{Label: p.Label}.Render()...)
 		ns = append(ns, htmlg.Text(" label"))
 		return ns
-	case issues.Unlabeled:
+	case changes.UnlabeledEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("removed the "))
-		ns = append(ns, Label{Label: *e.Event.Label}.Render()...)
+		ns = append(ns, issuescomponent.Label{Label: p.Label}.Render()...)
 		ns = append(ns, htmlg.Text(" label"))
 		return ns
-	case issues.CommentDeleted:
+	case changes.CommentDeletedEvent:
 		return []*html.Node{htmlg.Text("deleted a comment")}
-	case "ReviewRequestedEvent":
+	case changes.ReviewRequestedEvent:
 		ns := []*html.Node{htmlg.Text("requested a review from ")}
-		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
-		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
+		ns = append(ns, Avatar{User: p.RequestedReviewer, Size: 16, inline: true}.Render()...)
+		ns = append(ns, User{p.RequestedReviewer}.Render()...)
 		return ns
-	case "ReviewRequestRemovedEvent":
+	case changes.ReviewRequestRemovedEvent:
 		ns := []*html.Node{htmlg.Text("removed the review request from ")}
-		ns = append(ns, Avatar{User: e.Event.RequestedReviewer, Size: 16, Inline: true}.Render()...)
-		ns = append(ns, User{e.Event.RequestedReviewer}.Render()...)
+		ns = append(ns, Avatar{User: p.RequestedReviewer, Size: 16, inline: true}.Render()...)
+		ns = append(ns, User{p.RequestedReviewer}.Render()...)
 		return ns
-	case "MergedEvent":
+	case changes.MergedEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("merged commit "))
-		ns = append(ns, htmlg.Strong("d34db33f")) // TODO: e.MergedEvent.CommitID.
+		ns = append(ns, htmlg.Strong(p.CommitID)) // TODO: Code{}, use CommitHTMLURL.
 		ns = append(ns, htmlg.Text(" into "))
-		ns = append(ns, htmlg.Strong("master")) // TODO: e.MergedEvent.RefName.
+		ns = append(ns, htmlg.Strong(p.RefName)) // TODO: Code{}.
 		return ns
-	case "ApprovedEvent":
+	case changes.ApprovedEvent:
 		return []*html.Node{htmlg.Text("approved these changes")}
 	default:
-		return []*html.Node{htmlg.Text(string(e.Event.Type))}
+		return []*html.Node{htmlg.Text("unknown event")} // TODO: See if this is optimal.
 	}
 }
 
@@ -239,44 +240,6 @@ color: ` + color + `;`,
 	return []*html.Node{span}
 }
 
-// Label is a label component.
-type Label struct {
-	Label issues.Label
-}
-
-func (l Label) Render() []*html.Node {
-	// TODO: Make this much nicer.
-	// <span style="...; color: {{.fontColor}}; background-color: {{.Color.HexString}};">{{.Name}}</span>
-	span := &html.Node{
-		Type: html.ElementNode, Data: atom.Span.String(),
-		Attr: []html.Attribute{{
-			Key: atom.Style.String(),
-			Val: `display: inline-block;
-font-size: 12px;
-line-height: 1.2;
-padding: 0px 3px 0px 3px;
-border-radius: 2px;
-color: ` + l.fontColor() + `;
-background-color: ` + l.Label.Color.HexString() + `;`,
-		}},
-	}
-	span.AppendChild(htmlg.Text(l.Label.Name))
-	return []*html.Node{span}
-}
-
-// fontColor returns one of "#fff" or "#000", whichever is a better fit for
-// the font color given the label color.
-func (l Label) fontColor() string {
-	// Convert label color to 8-bit grayscale, and make a decision based on that.
-	switch y := color.GrayModel.Convert(l.Label.Color).(color.Gray).Y; {
-	case y < 128:
-		return "#fff"
-	case y >= 128:
-		return "#000"
-	}
-	panic("unreachable")
-}
-
 // User is a user component.
 type User struct {
 	User users.User
@@ -299,8 +262,8 @@ func (u User) Render() []*html.Node {
 // Avatar is an avatar component.
 type Avatar struct {
 	User   users.User
-	Size   int // In pixels, e.g., 48.
-	Inline bool
+	Size   int  // In pixels, e.g., 48.
+	inline bool // inline is experimental; so keep it contained to this package only for now.
 }
 
 func (a Avatar) Render() []*html.Node {
@@ -309,7 +272,7 @@ func (a Avatar) Render() []*html.Node {
 	// 	<img style="..." width="{{.Size}}" height="{{.Size}}" src="{{.User.AvatarURL}}">
 	// </a>
 	imgStyle := "border-radius: 3px;"
-	if a.Inline {
+	if a.inline {
 		imgStyle += " vertical-align: middle; margin-right: 4px;"
 	}
 	return []*html.Node{{
