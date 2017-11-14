@@ -73,6 +73,9 @@ func (e Event) icon() *html.Node {
 	case changes.ApprovedEvent:
 		icon = octiconssvg.Check()
 		color, backgroundColor = "#fff", "#6cc644"
+	case changes.ChangesRequestedEvent:
+		icon = octiconssvg.X()
+		color, backgroundColor = "#fff", "#bd2c00"
 	default:
 		icon = octiconssvg.PrimitiveDot()
 	}
@@ -127,6 +130,8 @@ func (e Event) text() []*html.Node {
 		return ns
 	case changes.ApprovedEvent:
 		return []*html.Node{htmlg.Text("approved these changes")}
+	case changes.ChangesRequestedEvent:
+		return []*html.Node{htmlg.Text("requested changes")}
 	default:
 		return []*html.Node{htmlg.Text("unknown event")} // TODO: See if this is optimal.
 	}
