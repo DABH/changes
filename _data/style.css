@@ -166,15 +166,15 @@ textarea.comment-editor:focus {
 	margin-left: 58px;
 }
 .event-header {
-	padding-top: 6px;
-	padding-bottom: 6px;
+	padding-top: 4px;
+	padding-bottom: 4px;
 	line-height: 20px;
 }
 .event-icon {
 	float: left;
 	margin-right: 10px;
-	width: 32px;
-	height: 32px;
+	width: 28px;
+	height: 28px;
 	display: flex; justify-content: center; align-items: center;
 	border-radius: 50%;
 }

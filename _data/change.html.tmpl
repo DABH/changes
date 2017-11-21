@@ -21,6 +21,8 @@
 {{define "timeline-item"}}
 	{{if eq .TemplateName "comment"}}
 		{{template "comment" .TimelineItem}}
+	{{else if eq .TemplateName "review"}}
+		{{template "review" .TimelineItem}}
 	{{else if eq .TemplateName "event"}}
 		{{render (event .TimelineItem)}}
 	{{end}}

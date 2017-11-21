@@ -1,4 +1,4 @@
-{{/* Dot is an changes.Comment. */}}
+{{/* Dot is a changes.Comment. */}}
 {{define "comment"}}
 <div>
 	<div>
@@ -30,4 +30,73 @@
 		{{render (reactionsBar .Reactions (reactableID .ID))}}
 	{{end}}
 </div>
+{{end}}
+
+{{/* Dot is a changes.Review. */}}
+{{define "review"}}
+<div>
+	<div>
+		<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
+		<div id="comment-{{.ID}}" style="display: flex;" class="list-entry">
+			<div class="list-entry-container list-entry-border">
+				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{end}}{{if and .State (not .Body)}} border: none;{{end}}">
+					<span class="content"{{if .State}} style="line-height: 28px;"{{end}}>{{template "review-icon" .State}}{{render (user .User)}} {{template "review-action" .State}} <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
+						{{with .Edited}} · <span style="cursor: default;" title="{{.By.Login}} edited this comment {{reltime .At}}.">edited{{if not (equalUsers $.User .By)}} by {{.By.Login}}{{end}}</span>{{end}}
+					</span>
+					{{if (not state.DisableReactions)}}
+						<span class="right-icon">{{render (newReaction (reactableID .ID))}}</span>
+					{{end}}
+					{{if .Editable}}<span class="right-icon"><a href="javascript:" title="Edit" onclick="EditComment({{`edit` | json}}, this);">{{octicon "pencil"}}</a></span>{{end}}
+				</header>
+				{{if or .Body (not .State)}}
+				<div class="list-entry-body">
+					<div class="markdown-body">
+						{{with .Body}}
+							{{. | gfm}}
+						{{else}}
+							<i class="gray">No description.</i>
+						{{end}}
+					</div>
+				</div>
+				{{end}}
+			</div>
+		</div>
+	</div>
+	{{if (not state.DisableReactions)}}
+		{{render (reactionsBar .Reactions (reactableID .ID))}}
+	{{end}}
+</div>
+{{end}}
+
+{{/* Dot is changes.ReviewState. */}}
+{{define "review-icon" }}
+	{{if eq . +1}}
+		<span class="event-icon" style="color: #fff; background-color: #6cc644;">{{octicon "check"}}</span>
+	{{else if eq . -1}}
+		TODO
+	{{end}}
+{{end}}
+
+{{/* Dot is changes.ReviewState. */}}
+{{define "review-action" }}
+	{{if eq . 0}}
+		commented
+	{{else if eq . +1}}
+		approved this change
+	{{else if eq . -1}}
+		requested changes
+	{{end}}
+{{end}}
+
+{{define "review-mock"}}
+<html>
+	<head>
+		{{template "head" .}}
+	</head>
+	<body>
+		{{template "body-pre" .}}
+		{{.BodyTop}}
+		{{template "review" .Review}}
+	</body>
+</html>
 {{end}}

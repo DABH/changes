@@ -29,6 +29,8 @@ func (i timelineItem) TemplateName() string {
 	switch i.TimelineItem.(type) {
 	case changes.Comment:
 		return "comment"
+	case changes.Review:
+		return "review"
 	case changes.TimelineItem:
 		return "event"
 	default:
@@ -40,6 +42,8 @@ func (i timelineItem) CreatedAt() time.Time {
 	switch i := i.TimelineItem.(type) {
 	case changes.Comment:
 		return i.CreatedAt
+	case changes.Review:
+		return i.CreatedAt
 	case changes.TimelineItem:
 		return i.CreatedAt
 	default:
@@ -50,6 +54,8 @@ func (i timelineItem) CreatedAt() time.Time {
 func (i timelineItem) ID() uint64 {
 	switch i := i.TimelineItem.(type) {
 	case changes.Comment:
+		return i.ID
+	case changes.Review:
 		return i.ID
 	case changes.TimelineItem:
 		return i.ID
