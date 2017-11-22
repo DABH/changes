@@ -65,6 +65,20 @@
 	{{if (not state.DisableReactions)}}
 		{{render (reactionsBar .Reactions (reactableID .ID))}}
 	{{end}}
+	{{with .Comments}}
+		<div style="margin-left: 80px;">
+		{{range .}}
+			<div class="list-entry list-entry-container list-entry-border">
+				<header class="list-entry-header">
+					{{.File}}:{{.Line}}
+				</header>
+				<div class="list-entry-body">
+					<div class="markdown-body">{{.Body}}</div>
+				</div>
+			</div>
+		{{end}}
+		</div>
+	{{end}}
 </div>
 {{end}}
 
