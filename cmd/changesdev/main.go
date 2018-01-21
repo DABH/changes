@@ -11,6 +11,10 @@ https://gerrit-review.googlesource.com/Documentation/rest-api.html
 https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-changes
 https://gerrit-review.googlesource.com/Documentation/user-search.html#_search_operators
 https://review.openstack.org/Documentation/config-hooks.html#_comment_added
+
+Go CL <-> PR doc: https://docs.google.com/document/d/131IKF-SHY8cLwpXhkR46HVrKiIYJztZml3YyqECwrgk/edit
+
+go-review / build / 80840 is a good simple CL with inline comments, replies, few revisions
 */
 
 import (
@@ -26,14 +30,12 @@ import (
 	"dmitri.shuralyov.com/changes/app"
 	"dmitri.shuralyov.com/changes/gerritapi"
 	"dmitri.shuralyov.com/changes/githubapi"
-	"dmitri.shuralyov.com/changes/maintner"
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/google/go-github/github"
 	"github.com/gregjones/httpcache"
 	"github.com/shurcooL/githubql"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/reactions/emojis"
-	"golang.org/x/build/maintner/godata"
 	"golang.org/x/oauth2"
 )
 
@@ -43,26 +45,8 @@ func main() {
 	flag.Parse()
 
 	var service changes.Service
-	switch 2 {
+	switch 0 {
 	case 0:
-		cacheTransport := httpcache.NewMemoryCacheTransport()
-		gerrit, err := gerrit.NewClient("https://go-review.googlesource.com/", &http.Client{Transport: cacheTransport})
-		//gerrit, err := gerrit.NewClient("https://upspin-review.googlesource.com/", &http.Client{Transport: cacheTransport})
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		service = gerritapi.NewService(gerrit)
-
-	case 1:
-		corpus, err := godata.Get(context.Background())
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		service = maintner.NewService(corpus)
-
-	case 2:
 		// Perform GitHub API authentication with provided token.
 		token := os.Getenv("CHANGES_GITHUB_TOKEN")
 		if token == "" {
@@ -84,13 +68,31 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
+	case 1:
+		cacheTransport := httpcache.NewMemoryCacheTransport()
+		gerrit, err := gerrit.NewClient("https://go-review.googlesource.com/", &http.Client{Transport: cacheTransport})
+		//gerrit, err := gerrit.NewClient("https://upspin-review.googlesource.com/", &http.Client{Transport: cacheTransport})
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		service = gerritapi.NewService(gerrit)
+
+	case 2:
+		/*corpus, err := godata.Get(context.Background())
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		service = maintner.NewService(corpus)*/
 	}
 
 	changesOpt := changesapp.Options{
 		HeadPre: `<style type="text/css">
 	body {
 		margin: 20px;
-		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		font-family: Go;
 		font-size: 14px;
 		line-height: initial;
 		color: #373a3c;
@@ -122,12 +124,14 @@ func main() {
 		if req.URL.Path == "" {
 			req.URL.Path = "/"
 		}
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/go"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/tools"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
-		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/google/go-github"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/google/go-github"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/dustin/go-humanize"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/neugram/ng"))
+		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/golang/scratch"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/go"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/tools"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/build"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
 		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, "/changes"))
 		changesApp.ServeHTTP(w, req)
 	})
