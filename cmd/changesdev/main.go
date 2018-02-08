@@ -15,6 +15,12 @@ https://review.openstack.org/Documentation/config-hooks.html#_comment_added
 Go CL <-> PR doc: https://docs.google.com/document/d/131IKF-SHY8cLwpXhkR46HVrKiIYJztZml3YyqECwrgk/edit
 
 go-review / build / 80840 is a good simple CL with inline comments, replies, few revisions
+
+another small one is go-review / debug / 92416:
+-	https://go-review.googlesource.com/c/debug/+/92416/1
+-	https://go-review.googlesource.com/c/debug/+/92416/1/gocore/dwarf.go#297
+-	http://localhost:8080/changes/92416
+-	http://localhost:8080/changes/92416/files/5f8a8d64c594b92bbd2a5b0735a25a91c2ffdbb3
 */
 
 import (
