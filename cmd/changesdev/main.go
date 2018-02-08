@@ -28,6 +28,7 @@ import (
 
 	"dmitri.shuralyov.com/changes"
 	"dmitri.shuralyov.com/changes/app"
+	"dmitri.shuralyov.com/changes/fs"
 	"dmitri.shuralyov.com/changes/gerritapi"
 	"dmitri.shuralyov.com/changes/githubapi"
 	"github.com/andygrunwald/go-gerrit"
@@ -45,7 +46,7 @@ func main() {
 	flag.Parse()
 
 	var service changes.Service
-	switch 0 {
+	switch 3 {
 	case 0:
 		// Perform GitHub API authentication with provided token.
 		token := os.Getenv("CHANGES_GITHUB_TOKEN")
@@ -86,6 +87,9 @@ func main() {
 		}
 
 		service = maintner.NewService(corpus)*/
+
+	case 3:
+		service = &fs.Service{}
 	}
 
 	changesOpt := changesapp.Options{
@@ -127,11 +131,12 @@ func main() {
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/google/go-github"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/dustin/go-humanize"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/neugram/ng"))
-		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/golang/scratch"))
+		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/golang/scratch"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/go"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/tools"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/build"))
 		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
+		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "dmitri.shuralyov.com/font/woff2"))
 		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, "/changes"))
 		changesApp.ServeHTTP(w, req)
 	})
