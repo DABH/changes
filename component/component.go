@@ -129,7 +129,7 @@ func (e Event) text() []*html.Node {
 		ns = append(ns, htmlg.Strong(p.RefName)) // TODO: Code{}.
 		return ns
 	case changes.ApprovedEvent:
-		return []*html.Node{htmlg.Text("approved these changes")}
+		return []*html.Node{htmlg.Text("approved this change")}
 	case changes.ChangesRequestedEvent:
 		return []*html.Node{htmlg.Text("requested changes")}
 	default:
