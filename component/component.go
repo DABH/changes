@@ -50,7 +50,7 @@ func (e Event) icon() *html.Node {
 		color           = "#767676"
 		backgroundColor = "#f3f3f3"
 	)
-	switch e.Event.Payload.(type) {
+	switch p := e.Event.Payload.(type) {
 	case changes.ClosedEvent:
 		icon = octiconssvg.CircleSlash()
 		color, backgroundColor = "#fff", "#bd2c00"
@@ -61,8 +61,6 @@ func (e Event) icon() *html.Node {
 		icon = octiconssvg.Pencil()
 	case changes.LabeledEvent, changes.UnlabeledEvent:
 		icon = octiconssvg.Tag()
-	case changes.CommentDeletedEvent:
-		icon = octiconssvg.X()
 	case changes.ReviewRequestedEvent:
 		icon = octiconssvg.Eye()
 	case changes.ReviewRequestRemovedEvent:
@@ -70,6 +68,16 @@ func (e Event) icon() *html.Node {
 	case changes.MergedEvent:
 		icon = octiconssvg.GitMerge()
 		color, backgroundColor = "#fff", "#6f42c1"
+	case changes.DeletedEvent:
+		switch p.Type {
+		case "branch":
+			icon = octiconssvg.GitBranch()
+			color, backgroundColor = "#fff", "#767676"
+		case "comment":
+			icon = octiconssvg.X()
+		default:
+			panic("unreachable")
+		}
 	case changes.ApprovedEvent:
 		icon = octiconssvg.Check()
 		color, backgroundColor = "#fff", "#6cc644"
@@ -109,8 +117,6 @@ func (e Event) text() []*html.Node {
 		ns = append(ns, issuescomponent.Label{Label: p.Label}.Render()...)
 		ns = append(ns, htmlg.Text(" label"))
 		return ns
-	case changes.CommentDeletedEvent:
-		return []*html.Node{htmlg.Text("deleted a comment")}
 	case changes.ReviewRequestedEvent:
 		ns := []*html.Node{htmlg.Text("requested a review from ")}
 		ns = append(ns, Avatar{User: p.RequestedReviewer, Size: 16, inline: true}.Render()...)
@@ -128,6 +134,19 @@ func (e Event) text() []*html.Node {
 		ns = append(ns, htmlg.Text(" into "))
 		ns = append(ns, htmlg.Strong(p.RefName)) // TODO: Code{}.
 		return ns
+	case changes.DeletedEvent:
+		switch p.Type {
+		case "branch":
+			var ns []*html.Node
+			ns = append(ns, htmlg.Text("deleted the "))
+			ns = append(ns, htmlg.Strong(p.Name)) // TODO: Code{}.
+			ns = append(ns, htmlg.Text(" branch"))
+			return ns
+		case "comment":
+			return []*html.Node{htmlg.Text("deleted a comment")}
+		default:
+			panic("unreachable")
+		}
 	case changes.ApprovedEvent:
 		return []*html.Node{htmlg.Text("approved this change")}
 	case changes.ChangesRequestedEvent:
