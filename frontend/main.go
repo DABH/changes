@@ -1,4 +1,4 @@
-// frontend script for changesapp.
+// frontend script for changes.
 //
 // It's a Go package meant to be compiled with GOARCH=js
 // and executed in a browser, where the DOM is available.

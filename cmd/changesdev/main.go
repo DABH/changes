@@ -32,11 +32,11 @@ import (
 	"os"
 	"strings"
 
-	"dmitri.shuralyov.com/changes"
-	"dmitri.shuralyov.com/changes/app"
-	"dmitri.shuralyov.com/changes/fs"
-	"dmitri.shuralyov.com/changes/gerritapi"
-	"dmitri.shuralyov.com/changes/githubapi"
+	"dmitri.shuralyov.com/app/changes"
+	"dmitri.shuralyov.com/service/change"
+	"dmitri.shuralyov.com/service/change/fs"
+	"dmitri.shuralyov.com/service/change/gerritapi"
+	"dmitri.shuralyov.com/service/change/githubapi"
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/google/go-github/github"
 	"github.com/gregjones/httpcache"
@@ -51,8 +51,8 @@ var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this
 func main() {
 	flag.Parse()
 
-	var service changes.Service
-	switch 3 {
+	var service change.Service
+	switch 0 {
 	case 0:
 		// Perform GitHub API authentication with provided token.
 		token := os.Getenv("CHANGES_GITHUB_TOKEN")
@@ -98,7 +98,7 @@ func main() {
 		service = &fs.Service{}
 	}
 
-	changesOpt := changesapp.Options{
+	changesOpt := changes.Options{
 		HeadPre: `<style type="text/css">
 	body {
 		margin: 20px;
@@ -116,9 +116,8 @@ func main() {
 		box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
 	}
 </style>`,
-		DisableReactions: true,
 	}
-	changesApp := changesapp.New(service, nil, changesOpt)
+	changesApp := changes.New(service, nil, changesOpt)
 
 	issuesHandler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		prefixLen := len("/changes")
@@ -134,16 +133,17 @@ func main() {
 		if req.URL.Path == "" {
 			req.URL.Path = "/"
 		}
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/google/go-github"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/dustin/go-humanize"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/neugram/ng"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "github.com/golang/scratch"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/go"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/tools"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "go.googlesource.com/build"))
-		//req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
-		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, "dmitri.shuralyov.com/font/woff2"))
-		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, "/changes"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/google/go-github"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/dustin/go-humanize"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/neugram/ng"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/golang/scratch"))
+		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/bradleyfalzon/ghinstallation"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/go"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/tools"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/build"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "dmitri.shuralyov.com/font/woff2"))
+		req = req.WithContext(context.WithValue(req.Context(), changes.BaseURIContextKey, "/changes"))
 		changesApp.ServeHTTP(w, req)
 	})
 	http.Handle("/changes", issuesHandler)

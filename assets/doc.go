@@ -1,4 +1,4 @@
-//go:generate vfsgendev -source="dmitri.shuralyov.com/changes/app/assets".Assets
+//go:generate vfsgendev -source="dmitri.shuralyov.com/app/changes/assets".Assets
 
-// Package assets contains assets for changesapp.
+// Package assets contains assets for changes.
 package assets

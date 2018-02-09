@@ -1,4 +1,4 @@
-package changesapp
+package changes
 
 import (
 	"bytes"
@@ -17,10 +17,10 @@ import (
 	"strings"
 	"time"
 
-	"dmitri.shuralyov.com/changes"
-	"dmitri.shuralyov.com/changes/app/assets"
-	"dmitri.shuralyov.com/changes/app/common"
-	"dmitri.shuralyov.com/changes/app/component"
+	"dmitri.shuralyov.com/app/changes/assets"
+	"dmitri.shuralyov.com/app/changes/common"
+	"dmitri.shuralyov.com/app/changes/component"
+	"dmitri.shuralyov.com/service/change"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/shurcooL/htmlg"
@@ -36,7 +36,7 @@ import (
 	"sourcegraph.com/sourcegraph/go-diff/diff"
 )
 
-// TODO: Find a better way for changesapp to be able to ensure registration of a top-level route:
+// TODO: Find a better way for changes to be able to ensure registration of a top-level route:
 //
 // 	emojisHandler := httpgzip.FileServer(emojis.Assets, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed})
 // 	http.Handle("/emojis/", http.StripPrefix("/emojis", emojisHandler))
@@ -52,14 +52,14 @@ import (
 // request to have 2 parameters provided to it via RepoSpecContextKey and BaseURIContextKey
 // context keys. For example:
 //
-// 	changesApp := changesapp.New(...)
+// 	changesApp := changes.New(...)
 //
 // 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-// 		req = req.WithContext(context.WithValue(req.Context(), changesapp.RepoSpecContextKey, string(...)))
-// 		req = req.WithContext(context.WithValue(req.Context(), changesapp.BaseURIContextKey, string(...)))
+// 		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, string(...)))
+// 		req = req.WithContext(context.WithValue(req.Context(), changes.BaseURIContextKey, string(...)))
 // 		changesApp.ServeHTTP(w, req)
 // 	})
-func New(service changes.Service, users users.Service, opt Options) http.Handler {
+func New(service change.Service, users users.Service, opt Options) http.Handler {
 	static, err := loadTemplates(common.State{}, opt.BodyPre)
 	if err != nil {
 		log.Fatalln("loadTemplates failed:", err)
@@ -100,10 +100,10 @@ type Options struct {
 	BodyTop func(*http.Request, common.State) ([]htmlg.Component, error)
 }
 
-// handler handles all requests to changesapp. It acts like a request multiplexer,
+// handler handles all requests to changes. It acts like a request multiplexer,
 // choosing from various endpoints and parsing the repository ID from URL.
 type handler struct {
-	is changes.Service
+	is change.Service
 	us users.Service // May be nil if there's no users service.
 
 	assetsFileServer http.Handler
@@ -117,10 +117,10 @@ type handler struct {
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) error {
 	if _, ok := req.Context().Value(RepoSpecContextKey).(string); !ok {
-		return fmt.Errorf("request to %v doesn't have changesapp.RepoSpecContextKey context key set", req.URL.Path)
+		return fmt.Errorf("request to %v doesn't have changes.RepoSpecContextKey context key set", req.URL.Path)
 	}
 	if _, ok := req.Context().Value(BaseURIContextKey).(string); !ok {
-		return fmt.Errorf("request to %v doesn't have changesapp.BaseURIContextKey context key set", req.URL.Path)
+		return fmt.Errorf("request to %v doesn't have changes.BaseURIContextKey context key set", req.URL.Path)
 	}
 
 	// Handle "/assets/gfm/...".
@@ -194,15 +194,15 @@ func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error
 	if err != nil {
 		return httperror.BadRequest{Err: err}
 	}
-	is, err := h.is.List(req.Context(), state.RepoSpec, changes.ListOptions{Filter: filter})
+	is, err := h.is.List(req.Context(), state.RepoSpec, change.ListOptions{Filter: filter})
 	if err != nil {
 		return err
 	}
-	openCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{Filter: changes.FilterOpen})
+	openCount, err := h.is.Count(req.Context(), state.RepoSpec, change.ListOptions{Filter: change.FilterOpen})
 	if err != nil {
 		return fmt.Errorf("changes.Count(open): %v", err)
 	}
-	closedCount, err := h.is.Count(req.Context(), state.RepoSpec, changes.ListOptions{Filter: changes.FilterClosedMerged})
+	closedCount, err := h.is.Count(req.Context(), state.RepoSpec, change.ListOptions{Filter: change.FilterClosedMerged})
 	if err != nil {
 		return fmt.Errorf("changes.Count(closed): %v", err)
 	}
@@ -237,21 +237,21 @@ const (
 
 // stateFilter parses the change state filter from query,
 // returning an error if the value is unsupported.
-func stateFilter(query url.Values) (changes.StateFilter, error) {
+func stateFilter(query url.Values) (change.StateFilter, error) {
 	selectedTabName := query.Get(stateQueryKey)
 	switch selectedTabName {
 	case "":
-		return changes.FilterOpen, nil
+		return change.FilterOpen, nil
 	case "closed":
-		return changes.FilterClosedMerged, nil
+		return change.FilterClosedMerged, nil
 	case "all":
-		return changes.FilterAll, nil
+		return change.FilterAll, nil
 	default:
 		return "", fmt.Errorf("unsupported state filter value: %q", selectedTabName)
 	}
 }
 
-func (s state) augmentUnread(ctx context.Context, es []component.ChangeEntry, is changes.Service, notificationsService notifications.Service) []component.ChangeEntry {
+func (s state) augmentUnread(ctx context.Context, es []component.ChangeEntry, is change.Service, notificationsService notifications.Service) []component.ChangeEntry {
 	if notificationsService == nil {
 		return es
 	}
@@ -309,19 +309,19 @@ func (h *handler) MockHandler(w http.ResponseWriter, req *http.Request) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = t.ExecuteTemplate(w, "review-mock", struct {
 		state
-		Review changes.Review
+		Review change.Review
 	}{
 		state: st,
-		Review: changes.Review{
+		Review: change.Review{
 			ID:        0,
 			User:      users.User{Login: "Eric Grosse", AvatarURL: "https://lh6.googleusercontent.com/-_sdEtv2PRxk/AAAAAAAAAAI/AAAAAAAAAAA/aE1Q66Cuvb4/s100-p/photo.jpg"},
 			CreatedAt: time.Now().UTC(),
 			Edited:    nil,
-			State:     changes.Approved,
+			State:     change.Approved,
 			Body:      "",
 			Reactions: []reactions.Reaction{},
 			Editable:  true,
-			Comments: []changes.InlineComment{
+			Comments: []change.InlineComment{
 				{
 					File: "rpc/keyserver/server.go",
 					Line: 26,
@@ -448,9 +448,9 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 			commit.NextSHA = cs[next].SHA
 		}
 	}
-	var opt *changes.GetDiffOptions
+	var opt *change.GetDiffOptions
 	if commitID != "" {
-		opt = &changes.GetDiffOptions{Commit: commitID}
+		opt = &change.GetDiffOptions{Commit: commitID}
 	}
 	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.ChangeID, opt)
 	if err != nil {
@@ -483,7 +483,7 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 
 // commitIndex returns the index of commit with SHA equal to commitID,
 // or -1 if not found.
-func commitIndex(cs []changes.Commit, commitID string) int {
+func commitIndex(cs []change.Commit, commitID string) int {
 	for i := range cs {
 		if cs[i].SHA == commitID {
 			return i
@@ -545,7 +545,7 @@ type state struct {
 	common.State
 
 	Changes  component.Changes
-	Change   changes.Change
+	Change   change.Change
 	Timeline []timelineItem
 }
 
@@ -624,8 +624,8 @@ func loadTemplates(state common.State, bodyPre string) (*template.Template, erro
 		"render": func(c htmlg.Component) template.HTML {
 			return template.HTML(htmlg.Render(c.Render()...))
 		},
-		"event":            func(e changes.TimelineItem) htmlg.Component { return component.Event{Event: e} },
-		"changeStateBadge": func(c changes.Change) htmlg.Component { return component.ChangeStateBadge{Change: c} },
+		"event":            func(e change.TimelineItem) htmlg.Component { return component.Event{Event: e} },
+		"changeStateBadge": func(c change.Change) htmlg.Component { return component.ChangeStateBadge{Change: c} },
 		"time":             func(t time.Time) htmlg.Component { return component.Time{Time: t} },
 		"user":             func(u users.User) htmlg.Component { return component.User{User: u} },
 		"avatar":           func(u users.User) htmlg.Component { return component.Avatar{User: u, Size: 48} },
@@ -644,7 +644,7 @@ type contextKey struct {
 }
 
 func (k *contextKey) String() string {
-	return "dmitri.shuralyov.com/changes/app context value " + k.name
+	return "dmitri.shuralyov.com/app/changes context value " + k.name
 }
 
 // stripPrefix returns request r with prefix of length prefixLen stripped from r.URL.Path.

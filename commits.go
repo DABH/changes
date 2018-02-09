@@ -1,10 +1,10 @@
-package changesapp
+package changes
 
 import (
 	"strings"
 
-	"dmitri.shuralyov.com/changes"
-	"dmitri.shuralyov.com/changes/app/component"
+	"dmitri.shuralyov.com/app/changes/component"
+	"dmitri.shuralyov.com/service/change"
 	homecomponent "github.com/shurcooL/home/component"
 	"github.com/shurcooL/htmlg"
 	"golang.org/x/net/html"
@@ -34,7 +34,7 @@ func (cs Commits) Render() []*html.Node {
 }
 
 type Commit struct {
-	changes.Commit
+	change.Commit
 }
 
 func (c Commit) Render() []*html.Node {

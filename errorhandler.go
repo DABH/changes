@@ -1,4 +1,4 @@
-package changesapp
+package changes
 
 import (
 	"context"

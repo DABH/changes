@@ -85,7 +85,7 @@ code {
 	font-size: 12px;
 }
 
-/* Needed in changesapp only because of something in parent containers... */
+/* Needed in changes only because of something in parent containers... */
 .markdown-body {
 	word-break: break-word;
 }

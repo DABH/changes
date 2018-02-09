@@ -1,4 +1,4 @@
-package changesapp
+package changes
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"dmitri.shuralyov.com/changes"
-	"dmitri.shuralyov.com/changes/app/component"
+	"dmitri.shuralyov.com/app/changes/component"
+	"dmitri.shuralyov.com/service/change"
 	"github.com/shurcooL/highlight_diff"
 	"github.com/shurcooL/htmlg"
 	"github.com/shurcooL/users"
@@ -27,11 +27,11 @@ type timelineItem struct {
 
 func (i timelineItem) TemplateName() string {
 	switch i.TimelineItem.(type) {
-	case changes.Comment:
+	case change.Comment:
 		return "comment"
-	case changes.Review:
+	case change.Review:
 		return "review"
-	case changes.TimelineItem:
+	case change.TimelineItem:
 		return "event"
 	default:
 		panic(fmt.Errorf("unknown item type %T", i.TimelineItem))
@@ -40,11 +40,11 @@ func (i timelineItem) TemplateName() string {
 
 func (i timelineItem) CreatedAt() time.Time {
 	switch i := i.TimelineItem.(type) {
-	case changes.Comment:
+	case change.Comment:
 		return i.CreatedAt
-	case changes.Review:
+	case change.Review:
 		return i.CreatedAt
-	case changes.TimelineItem:
+	case change.TimelineItem:
 		return i.CreatedAt
 	default:
 		panic(fmt.Errorf("unknown item type %T", i))
@@ -53,11 +53,11 @@ func (i timelineItem) CreatedAt() time.Time {
 
 func (i timelineItem) ID() uint64 {
 	switch i := i.TimelineItem.(type) {
-	case changes.Comment:
+	case change.Comment:
 		return i.ID
-	case changes.Review:
+	case change.Review:
 		return i.ID
-	case changes.TimelineItem:
+	case change.TimelineItem:
 		return i.ID
 	default:
 		panic(fmt.Errorf("unknown item type %T", i))

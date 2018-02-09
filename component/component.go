@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"dmitri.shuralyov.com/changes"
+	"dmitri.shuralyov.com/service/change"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/htmlg"
 	issuescomponent "github.com/shurcooL/issuesapp/component"
@@ -17,7 +17,7 @@ import (
 
 // Event is an event component.
 type Event struct {
-	Event changes.TimelineItem
+	Event change.TimelineItem
 }
 
 func (e Event) Render() []*html.Node {
@@ -51,24 +51,24 @@ func (e Event) icon() *html.Node {
 		backgroundColor = "#f3f3f3"
 	)
 	switch p := e.Event.Payload.(type) {
-	case changes.ClosedEvent:
+	case change.ClosedEvent:
 		icon = octiconssvg.CircleSlash()
 		color, backgroundColor = "#fff", "#bd2c00"
-	case changes.ReopenedEvent:
+	case change.ReopenedEvent:
 		icon = octiconssvg.PrimitiveDot()
 		color, backgroundColor = "#fff", "#6cc644"
-	case changes.RenamedEvent:
+	case change.RenamedEvent:
 		icon = octiconssvg.Pencil()
-	case changes.LabeledEvent, changes.UnlabeledEvent:
+	case change.LabeledEvent, change.UnlabeledEvent:
 		icon = octiconssvg.Tag()
-	case changes.ReviewRequestedEvent:
+	case change.ReviewRequestedEvent:
 		icon = octiconssvg.Eye()
-	case changes.ReviewRequestRemovedEvent:
+	case change.ReviewRequestRemovedEvent:
 		icon = octiconssvg.X()
-	case changes.MergedEvent:
+	case change.MergedEvent:
 		icon = octiconssvg.GitMerge()
 		color, backgroundColor = "#fff", "#6f42c1"
-	case changes.DeletedEvent:
+	case change.DeletedEvent:
 		switch p.Type {
 		case "branch":
 			icon = octiconssvg.GitBranch()
@@ -78,10 +78,10 @@ func (e Event) icon() *html.Node {
 		default:
 			panic("unreachable")
 		}
-	case changes.ApprovedEvent:
+	case change.ApprovedEvent:
 		icon = octiconssvg.Check()
 		color, backgroundColor = "#fff", "#6cc644"
-	case changes.ChangesRequestedEvent:
+	case change.ChangesRequestedEvent:
 		icon = octiconssvg.X()
 		color, backgroundColor = "#fff", "#bd2c00"
 	default:
@@ -99,42 +99,42 @@ func (e Event) icon() *html.Node {
 
 func (e Event) text() []*html.Node {
 	switch p := e.Event.Payload.(type) {
-	case changes.ClosedEvent:
+	case change.ClosedEvent:
 		return []*html.Node{htmlg.Text("closed this")}
-	case changes.ReopenedEvent:
+	case change.ReopenedEvent:
 		return []*html.Node{htmlg.Text("reopened this")}
-	case changes.RenamedEvent:
+	case change.RenamedEvent:
 		return []*html.Node{htmlg.Text("changed the title from "), htmlg.Strong(p.From), htmlg.Text(" to "), htmlg.Strong(p.To)}
-	case changes.LabeledEvent:
+	case change.LabeledEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("added the "))
 		ns = append(ns, issuescomponent.Label{Label: p.Label}.Render()...)
 		ns = append(ns, htmlg.Text(" label"))
 		return ns
-	case changes.UnlabeledEvent:
+	case change.UnlabeledEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("removed the "))
 		ns = append(ns, issuescomponent.Label{Label: p.Label}.Render()...)
 		ns = append(ns, htmlg.Text(" label"))
 		return ns
-	case changes.ReviewRequestedEvent:
+	case change.ReviewRequestedEvent:
 		ns := []*html.Node{htmlg.Text("requested a review from ")}
 		ns = append(ns, Avatar{User: p.RequestedReviewer, Size: 16, inline: true}.Render()...)
 		ns = append(ns, User{p.RequestedReviewer}.Render()...)
 		return ns
-	case changes.ReviewRequestRemovedEvent:
+	case change.ReviewRequestRemovedEvent:
 		ns := []*html.Node{htmlg.Text("removed the review request from ")}
 		ns = append(ns, Avatar{User: p.RequestedReviewer, Size: 16, inline: true}.Render()...)
 		ns = append(ns, User{p.RequestedReviewer}.Render()...)
 		return ns
-	case changes.MergedEvent:
+	case change.MergedEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("merged commit "))
 		ns = append(ns, htmlg.Strong(p.CommitID)) // TODO: Code{}, use CommitHTMLURL.
 		ns = append(ns, htmlg.Text(" into "))
 		ns = append(ns, htmlg.Strong(p.RefName)) // TODO: Code{}.
 		return ns
-	case changes.DeletedEvent:
+	case change.DeletedEvent:
 		switch p.Type {
 		case "branch":
 			var ns []*html.Node
@@ -147,9 +147,9 @@ func (e Event) text() []*html.Node {
 		default:
 			panic("unreachable")
 		}
-	case changes.ApprovedEvent:
+	case change.ApprovedEvent:
 		return []*html.Node{htmlg.Text("approved this change")}
-	case changes.ChangesRequestedEvent:
+	case change.ChangesRequestedEvent:
 		return []*html.Node{htmlg.Text("requested changes")}
 	default:
 		return []*html.Node{htmlg.Text("unknown event")} // TODO: See if this is optimal.
@@ -159,7 +159,7 @@ func (e Event) text() []*html.Node {
 // ChangeStateBadge is a component that displays the state of a change
 // with a badge, who opened it, and when it was opened.
 type ChangeStateBadge struct {
-	Change changes.Change
+	Change change.Change
 }
 
 func (i ChangeStateBadge) Render() []*html.Node {
@@ -180,7 +180,7 @@ func (i ChangeStateBadge) Render() []*html.Node {
 
 // ChangeBadge is a change badge, displaying the change's state.
 type ChangeBadge struct {
-	State changes.State
+	State change.State
 }
 
 func (cb ChangeBadge) Render() []*html.Node {
@@ -190,15 +190,15 @@ func (cb ChangeBadge) Render() []*html.Node {
 		color string
 	)
 	switch cb.State {
-	case changes.OpenState:
+	case change.OpenState:
 		icon = octiconssvg.GitPullRequest()
 		text = "Open"
 		color = "#6cc644"
-	case changes.ClosedState:
+	case change.ClosedState:
 		icon = octiconssvg.GitPullRequest()
 		text = "Closed"
 		color = "#bd2c00"
-	case changes.MergedState:
+	case change.MergedState:
 		icon = octiconssvg.GitMerge()
 		text = "Merged"
 		color = "#6f42c1"
@@ -227,7 +227,7 @@ background-color: ` + color + `;`,
 
 // ChangeIcon is a change icon, displaying the change's state.
 type ChangeIcon struct {
-	State changes.State
+	State change.State
 }
 
 func (ii ChangeIcon) Render() []*html.Node {
@@ -242,13 +242,13 @@ func (ii ChangeIcon) Render() []*html.Node {
 		color string
 	)
 	switch ii.State {
-	case changes.OpenState:
+	case change.OpenState:
 		icon = octiconssvg.GitPullRequest()
 		color = "#6cc644"
-	case changes.ClosedState:
+	case change.ClosedState:
 		icon = octiconssvg.GitPullRequest()
 		color = "#bd2c00"
-	case changes.MergedState:
+	case change.MergedState:
 		icon = octiconssvg.GitMerge()
 		color = "#6f42c1"
 	}

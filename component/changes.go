@@ -3,7 +3,7 @@ package component
 import (
 	"fmt"
 
-	"dmitri.shuralyov.com/changes"
+	"dmitri.shuralyov.com/service/change"
 	"github.com/shurcooL/htmlg"
 	issuescomponent "github.com/shurcooL/issuesapp/component"
 	"github.com/shurcooL/octiconssvg"
@@ -15,7 +15,7 @@ import (
 // with a navigation bar on top.
 type Changes struct {
 	IssuesNav IssuesNav
-	Filter    changes.StateFilter
+	Filter    change.StateFilter
 	Entries   []ChangeEntry
 }
 
@@ -42,11 +42,11 @@ func (i Changes) Render() []*html.Node {
 			Attr: []html.Attribute{{Key: atom.Style.String(), Val: "text-align: center; margin-top: 80px; margin-bottom: 80px;"}},
 		}
 		switch i.Filter {
-		case changes.FilterOpen:
+		case change.FilterOpen:
 			div.AppendChild(htmlg.Text("There are no open changes."))
-		case changes.FilterClosedMerged:
+		case change.FilterClosedMerged:
 			div.AppendChild(htmlg.Text("There are no closed/merged changes."))
-		case changes.FilterAll:
+		case change.FilterAll:
 			div.AppendChild(htmlg.Text("There are no changes."))
 		}
 		ns = append(ns, div)
@@ -58,7 +58,7 @@ func (i Changes) Render() []*html.Node {
 
 // ChangeEntry is an entry within the list of changes.
 type ChangeEntry struct {
-	Change changes.Change
+	Change change.Change
 	Unread bool // Unread indicates whether the change contains unread notifications for authenticated user.
 
 	// TODO, THINK: This is router details, can it be factored out or cleaned up?
