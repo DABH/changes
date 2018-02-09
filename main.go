@@ -97,7 +97,7 @@ type Options struct {
 	BodyPre           string // An html/template definition of "body-pre" template.
 
 	// BodyTop provides components to include on top of <body> of page rendered for req. It can be nil.
-	BodyTop func(req *http.Request) ([]htmlg.Component, error)
+	BodyTop func(*http.Request, common.State) ([]htmlg.Component, error)
 }
 
 // handler handles all requests to changesapp. It acts like a request multiplexer,
@@ -511,7 +511,7 @@ func (h *handler) state(req *http.Request, changeID uint64) (state, error) {
 	b.HeadPre = h.HeadPre
 	b.HeadPost = h.HeadPost
 	if h.BodyTop != nil {
-		c, err := h.BodyTop(req)
+		c, err := h.BodyTop(req, b.State)
 		if err != nil {
 			return state{}, err
 		}
