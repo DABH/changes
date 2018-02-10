@@ -65,7 +65,7 @@ func New(service change.Service, users users.Service, opt Options) http.Handler 
 		log.Fatalln("loadTemplates failed:", err)
 	}
 	h := handler{
-		is:               service,
+		cs:               service,
 		us:               users,
 		static:           static,
 		assetsFileServer: httpgzip.FileServer(assets.Assets, httpgzip.FileServerOptions{ServeError: httpgzip.Detailed}),
@@ -103,7 +103,7 @@ type Options struct {
 // handler handles all requests to changes. It acts like a request multiplexer,
 // choosing from various endpoints and parsing the repository ID from URL.
 type handler struct {
-	is change.Service
+	cs change.Service
 	us users.Service // May be nil if there's no users service.
 
 	assetsFileServer http.Handler
@@ -194,15 +194,15 @@ func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error
 	if err != nil {
 		return httperror.BadRequest{Err: err}
 	}
-	is, err := h.is.List(req.Context(), state.RepoSpec, change.ListOptions{Filter: filter})
+	is, err := h.cs.List(req.Context(), state.RepoSpec, change.ListOptions{Filter: filter})
 	if err != nil {
 		return err
 	}
-	openCount, err := h.is.Count(req.Context(), state.RepoSpec, change.ListOptions{Filter: change.FilterOpen})
+	openCount, err := h.cs.Count(req.Context(), state.RepoSpec, change.ListOptions{Filter: change.FilterOpen})
 	if err != nil {
 		return fmt.Errorf("changes.Count(open): %v", err)
 	}
-	closedCount, err := h.is.Count(req.Context(), state.RepoSpec, change.ListOptions{Filter: change.FilterClosedMerged})
+	closedCount, err := h.cs.Count(req.Context(), state.RepoSpec, change.ListOptions{Filter: change.FilterClosedMerged})
 	if err != nil {
 		return fmt.Errorf("changes.Count(closed): %v", err)
 	}
@@ -210,7 +210,7 @@ func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error
 	for _, i := range is {
 		es = append(es, component.ChangeEntry{Change: i, BaseURI: state.BaseURI})
 	}
-	es = state.augmentUnread(req.Context(), es, h.is, h.Notifications)
+	es = state.augmentUnread(req.Context(), es, h.cs, h.Notifications)
 	state.Changes = component.Changes{
 		IssuesNav: component.IssuesNav{
 			OpenCount:     openCount,
@@ -349,11 +349,11 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 	if err != nil {
 		return err
 	}
-	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.ChangeID)
+	state.Change, err = h.cs.Get(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
-	ts, err := h.is.ListTimeline(req.Context(), state.RepoSpec, state.ChangeID, nil)
+	ts, err := h.cs.ListTimeline(req.Context(), state.RepoSpec, state.ChangeID, nil)
 	if err != nil {
 		return fmt.Errorf("changes.ListTimeline: %v", err)
 	}
@@ -384,11 +384,11 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	if err != nil {
 		return err
 	}
-	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.ChangeID)
+	state.Change, err = h.cs.Get(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
-	cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.ChangeID)
+	list, err := h.cs.ListCommits(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
@@ -397,11 +397,11 @@ func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request,
 	if err != nil {
 		return err
 	}
-	var commits []Commit
-	for _, c := range cs {
-		commits = append(commits, Commit{Commit: c})
+	var cs []commit
+	for _, c := range list {
+		cs = append(cs, commit{Commit: c})
 	}
-	err = htmlg.RenderComponents(w, Commits{Commits: commits})
+	err = htmlg.RenderComponents(w, commits{Commits: cs})
 	if err != nil {
 		return err
 	}
@@ -419,13 +419,13 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	if err != nil {
 		return err
 	}
-	state.Change, err = h.is.Get(req.Context(), state.RepoSpec, state.ChangeID)
+	state.Change, err = h.cs.Get(req.Context(), state.RepoSpec, state.ChangeID)
 	if err != nil {
 		return err
 	}
 	var commit commitMessage
 	if commitID != "" {
-		cs, err := h.is.ListCommits(req.Context(), state.RepoSpec, state.ChangeID)
+		cs, err := h.cs.ListCommits(req.Context(), state.RepoSpec, state.ChangeID)
 		if err != nil {
 			return err
 		}
@@ -452,7 +452,7 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 	if commitID != "" {
 		opt = &change.GetDiffOptions{Commit: commitID}
 	}
-	rawDiff, err := h.is.GetDiff(req.Context(), state.RepoSpec, state.ChangeID, opt)
+	rawDiff, err := h.cs.GetDiff(req.Context(), state.RepoSpec, state.ChangeID, opt)
 	if err != nil {
 		return err
 	}

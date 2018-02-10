@@ -11,11 +11,11 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-type Commits struct {
-	Commits []Commit
+type commits struct {
+	Commits []commit
 }
 
-func (cs Commits) Render() []*html.Node {
+func (cs commits) Render() []*html.Node {
 	if len(cs.Commits) == 0 {
 		// No commits. Let the user know via a blank slate.
 		div := &html.Node{
@@ -33,11 +33,11 @@ func (cs Commits) Render() []*html.Node {
 	return []*html.Node{htmlg.DivClass("list-entry-border", nodes...)}
 }
 
-type Commit struct {
+type commit struct {
 	change.Commit
 }
 
-func (c Commit) Render() []*html.Node {
+func (c commit) Render() []*html.Node {
 	div := &html.Node{
 		Type: html.ElementNode, Data: atom.Div.String(),
 		Attr: []html.Attribute{{Key: atom.Style.String(), Val: "display: flex;"}},
