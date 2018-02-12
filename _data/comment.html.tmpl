@@ -39,7 +39,7 @@
 		<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
 		<div id="comment-{{.ID}}" style="display: flex;" class="list-entry">
 			<div class="list-entry-container list-entry-border">
-				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{end}}{{if and .State (not .Body)}} border: none;{{end}}">
+				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{else if eq .State -1}} background-color: #ffd4d4; padding: 4px;{{end}}{{if and .State (not .Body)}} border: none;{{end}}">
 					<span class="content"{{if .State}} style="line-height: 28px;"{{end}}>{{template "review-icon" .State}}{{render (user .User)}} {{template "review-action" .State}} <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
 						{{with .Edited}} · <span style="cursor: default;" title="{{.By.Login}} edited this comment {{reltime .At}}.">edited{{if not (equalUsers $.User .By)}} by {{.By.Login}}{{end}}</span>{{end}}
 					</span>
@@ -87,7 +87,7 @@
 	{{if eq . +1}}
 		<span class="event-icon" style="color: #fff; background-color: #6cc644;">{{octicon "check"}}</span>
 	{{else if eq . -1}}
-		TODO
+		<span class="event-icon" style="color: #fff; background-color: #bd2c00;">{{octicon "x"}}</span>
 	{{end}}
 {{end}}
 
