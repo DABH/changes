@@ -73,7 +73,7 @@
 					{{.File}}:{{.Line}}
 				</header>
 				<div class="list-entry-body">
-					<div class="markdown-body">{{.Body}}</div>
+					<div class="markdown-body">{{.Body | gfm}}</div>
 				</div>
 			</div>
 		{{end}}
