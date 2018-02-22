@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"dmitri.shuralyov.com/html/belt"
 	"dmitri.shuralyov.com/service/change"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/htmlg"
@@ -130,16 +131,19 @@ func (e Event) text() []*html.Node {
 	case change.MergedEvent:
 		var ns []*html.Node
 		ns = append(ns, htmlg.Text("merged commit "))
-		ns = append(ns, htmlg.Strong(p.CommitID)) // TODO: Code{}, use CommitHTMLURL.
+		ns = append(ns, belt.CommitID{
+			SHA:     p.CommitID,
+			HTMLURL: p.CommitHTMLURL,
+		}.Render()...)
 		ns = append(ns, htmlg.Text(" into "))
-		ns = append(ns, htmlg.Strong(p.RefName)) // TODO: Code{}.
+		ns = append(ns, belt.Reference{Name: p.RefName}.Render()...)
 		return ns
 	case change.DeletedEvent:
 		switch p.Type {
 		case "branch":
 			var ns []*html.Node
 			ns = append(ns, htmlg.Text("deleted the "))
-			ns = append(ns, htmlg.Strong(p.Name)) // TODO: Code{}.
+			ns = append(ns, belt.Reference{Name: p.Name}.Render()...)
 			ns = append(ns, htmlg.Text(" branch"))
 			return ns
 		case "comment":

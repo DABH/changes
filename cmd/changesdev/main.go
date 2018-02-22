@@ -37,12 +37,14 @@ import (
 	"dmitri.shuralyov.com/service/change/fs"
 	"dmitri.shuralyov.com/service/change/gerritapi"
 	"dmitri.shuralyov.com/service/change/githubapi"
+	"dmitri.shuralyov.com/service/change/maintner"
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/google/go-github/github"
 	"github.com/gregjones/httpcache"
 	"github.com/shurcooL/githubql"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/reactions/emojis"
+	"golang.org/x/build/maintner/godata"
 	"golang.org/x/oauth2"
 )
 
@@ -87,19 +89,20 @@ func main() {
 		service = gerritapi.NewService(gerrit)
 
 	case 2:
-		/*corpus, err := godata.Get(context.Background())
+		corpus, err := godata.Get(context.Background())
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		service = maintner.NewService(corpus)*/
+		service = maintner.NewService(corpus)
 
 	case 3:
 		service = &fs.Service{}
 	}
 
 	changesOpt := changes.Options{
-		HeadPre: `<style type="text/css">
+		HeadPre: `<meta name="viewport" content="width=device-width">
+<style type="text/css">
 	body {
 		margin: 20px;
 		font-family: Go;
@@ -137,7 +140,10 @@ func main() {
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/dustin/go-humanize"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/neugram/ng"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/golang/scratch"))
-		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/bradleyfalzon/ghinstallation"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/bradleyfalzon/ghinstallation"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/golang/gddo"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/avelino/awesome-go"))
+		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/travis-ci/travis-build"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/go"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/tools"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/build"))
