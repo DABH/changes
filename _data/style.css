@@ -208,7 +208,6 @@ span.right-icon div.new-reaction .plus {
 
 div.reactable-container {
 	vertical-align: top;
-	margin-left: 58px;
 }
 div.reactable-container:hover div.new-reaction {
 	display: inline-block;

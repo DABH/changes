@@ -1,9 +1,9 @@
 {{/* Dot is a changes.Comment. */}}
 {{define "comment"}}
-<div>
-	<div>
-		<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
-		<div id="comment-{{.ID}}" style="display: flex;" class="list-entry">
+<div class="list-entry">
+	<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
+	<div style="display: grid;">
+		<div id="comment-{{.ID}}" style="display: flex;">
 			<div class="list-entry-container list-entry-border">
 				<header class="list-entry-header" style="display: flex;">
 					<span class="content">{{render (user .User)}} commented <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
@@ -25,57 +25,59 @@
 				</div>
 			</div>
 		</div>
+		{{if (not state.DisableReactions)}}
+			{{render (reactionsBar .Reactions (reactableID .ID))}}
+		{{end}}
 	</div>
-	{{if (not state.DisableReactions)}}
-		{{render (reactionsBar .Reactions (reactableID .ID))}}
-	{{end}}
 </div>
 {{end}}
 
 {{/* Dot is a changes.Review. */}}
 {{define "review"}}
-<div>
-	<div>
-		<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
-		<div id="comment-{{.ID}}" style="display: flex;" class="list-entry">
+<div class="list-entry">
+	<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
+	<div style="display: grid;">
+		<div id="comment-{{.ID}}" style="display: flex;">
 			<div class="list-entry-container list-entry-border">
-				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{else if eq .State -1}} background-color: #ffd4d4; padding: 4px;{{end}}{{if and .State (not .Body)}} border: none;{{end}}">
+				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{else if eq .State -1}} background-color: #ffd4d4; padding: 4px;{{end}}{{if not .Body}} border: none;{{end}}">
 					<span class="content"{{if .State}} style="line-height: 28px;"{{end}}>{{template "review-icon" .State}}{{render (user .User)}} {{template "review-action" .State}} <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
 						{{with .Edited}} · <span style="cursor: default;" title="{{.By.Login}} edited this comment {{reltime .At}}.">edited{{if not (equalUsers $.User .By)}} by {{.By.Login}}{{end}}</span>{{end}}
 					</span>
-					{{if (not state.DisableReactions)}}
+					{{if and (not state.DisableReactions) .Body}}
 						<span class="right-icon">{{render (newReaction (reactableID .ID))}}</span>
 					{{end}}
 					{{if .Editable}}<span class="right-icon"><a href="javascript:" title="Edit" onclick="EditComment({{`edit` | json}}, this);">{{octicon "pencil"}}</a></span>{{end}}
 				</header>
-				{{if or .Body (not .State)}}
+				{{with .Body}}
 				<div class="list-entry-body">
 					<div class="markdown-body">
-						{{with .Body}}
-							{{. | gfm}}
-						{{else}}
-							<i class="gray">No description.</i>
-						{{end}}
+						{{. | gfm}}
 					</div>
 				</div>
 				{{end}}
 			</div>
 		</div>
+		{{if (not state.DisableReactions)}}
+			{{render (reactionsBar .Reactions (reactableID .ID))}}
+		{{end}}
 	</div>
-	{{if (not state.DisableReactions)}}
-		{{render (reactionsBar .Reactions (reactableID .ID))}}
-	{{end}}
 	{{with .Comments}}
 		<div style="margin-left: 80px;">
 		{{range .}}
 			<div class="list-entry list-entry-container list-entry-border">
 				<header class="list-entry-header">
-					{{.File}}:{{.Line}}
+					<span class="content">{{.File}}:{{.Line}}</span>
+					{{if (not state.DisableReactions)}}
+						<span class="right-icon">{{render (newReaction (reactableID .ID))}}</span>
+					{{end}}
 				</header>
 				<div class="list-entry-body">
 					<div class="markdown-body">{{.Body | gfm}}</div>
 				</div>
 			</div>
+			{{if (not state.DisableReactions)}}
+				{{render (reactionsBar .Reactions (reactableID .ID))}}
+			{{end}}
 		{{end}}
 		</div>
 	{{end}}
