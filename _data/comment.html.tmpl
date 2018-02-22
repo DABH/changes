@@ -2,8 +2,8 @@
 {{define "comment"}}
 <div class="list-entry">
 	<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
-	<div style="display: grid;">
-		<div id="comment-{{.ID}}" style="display: flex;">
+	<div style="display: flex; flex-direction: column;">
+		<div id="comment-{{.ID}}">
 			<div class="list-entry-container list-entry-border">
 				<header class="list-entry-header" style="display: flex;">
 					<span class="content">{{render (user .User)}} commented <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
@@ -36,8 +36,8 @@
 {{define "review"}}
 <div class="list-entry">
 	<div style="float: left; margin-right: 10px;">{{render (avatar .User)}}</div>
-	<div style="display: grid;">
-		<div id="comment-{{.ID}}" style="display: flex;">
+	<div style="display: flex; flex-direction: column;">
+		<div id="comment-{{.ID}}">
 			<div class="list-entry-container list-entry-border">
 				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{else if eq .State -1}} background-color: #ffd4d4; padding: 4px;{{end}}{{if not .Body}} border: none;{{end}}">
 					<span class="content"{{if .State}} style="line-height: 28px;"{{end}}>{{template "review-icon" .State}}{{render (user .User)}} {{template "review-action" .State}} <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
