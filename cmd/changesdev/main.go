@@ -37,13 +37,18 @@ import (
 	"dmitri.shuralyov.com/service/change/fs"
 	"dmitri.shuralyov.com/service/change/gerritapi"
 	"dmitri.shuralyov.com/service/change/githubapi"
+	"dmitri.shuralyov.com/service/change/httphandler"
+	"dmitri.shuralyov.com/service/change/httproute"
 	"dmitri.shuralyov.com/service/change/maintner"
 	"github.com/andygrunwald/go-gerrit"
 	"github.com/google/go-github/github"
 	"github.com/gregjones/httpcache"
 	"github.com/shurcooL/githubql"
+	"github.com/shurcooL/home/httputil"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/reactions/emojis"
+	"github.com/shurcooL/users"
+	ghusers "github.com/shurcooL/users/githubapi"
 	"golang.org/x/build/maintner/godata"
 	"golang.org/x/oauth2"
 )
@@ -53,6 +58,7 @@ var httpFlag = flag.String("http", ":8080", "Listen for HTTP connections on this
 func main() {
 	flag.Parse()
 
+	var usersService users.Service
 	var service change.Service
 	switch 0 {
 	case 0:
@@ -73,6 +79,10 @@ func main() {
 		ghV4 := githubql.NewClient(httpClient)
 
 		var err error
+		usersService, err = ghusers.NewService(ghV3)
+		if err != nil {
+			log.Fatalln("ghusers.NewService:", err)
+		}
 		service, err = githubapi.NewService(ghV3, ghV4, nil)
 		if err != nil {
 			log.Fatalln(err)
@@ -100,6 +110,10 @@ func main() {
 		service = &fs.Service{}
 	}
 
+	// Register HTTP API endpoints.
+	apiHandler := httphandler.Change{Change: service}
+	http.Handle(httproute.EditComment, httputil.ErrorHandler(usersService, apiHandler.EditComment))
+
 	changesOpt := changes.Options{
 		HeadPre: `<meta name="viewport" content="width=device-width">
 <style type="text/css">
@@ -120,7 +134,7 @@ func main() {
 	}
 </style>`,
 	}
-	changesApp := changes.New(service, nil, changesOpt)
+	changesApp := changes.New(service, usersService, changesOpt)
 
 	issuesHandler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		prefixLen := len("/changes")
@@ -144,6 +158,7 @@ func main() {
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/golang/gddo"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/avelino/awesome-go"))
 		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/travis-ci/travis-build"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/primer/octicons"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/go"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/tools"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/build"))

@@ -51,7 +51,7 @@ func (i timelineItem) CreatedAt() time.Time {
 	}
 }
 
-func (i timelineItem) ID() uint64 {
+func (i timelineItem) ID() string {
 	switch i := i.TimelineItem.(type) {
 	case change.Comment:
 		return i.ID

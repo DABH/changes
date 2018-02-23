@@ -59,6 +59,12 @@ import (
 // 		req = req.WithContext(context.WithValue(req.Context(), changes.BaseURIContextKey, string(...)))
 // 		changesApp.ServeHTTP(w, req)
 // 	})
+//
+// An HTTP API must be available (currently, only EditComment endpoint is used):
+//
+// 	// Register HTTP API endpoints.
+// 	apiHandler := httphandler.Change{Change: service}
+// 	http.Handle(httproute.EditComment, errorHandler(apiHandler.EditComment))
 func New(service change.Service, users users.Service, opt Options) http.Handler {
 	static, err := loadTemplates(common.State{}, opt.BodyPre)
 	if err != nil {
@@ -314,7 +320,7 @@ func (h *handler) MockHandler(w http.ResponseWriter, req *http.Request) error {
 	}{
 		state: st,
 		Review: change.Review{
-			ID:        0,
+			ID:        "0",
 			User:      users.User{Login: "Eric Grosse", AvatarURL: "https://lh6.googleusercontent.com/-_sdEtv2PRxk/AAAAAAAAAAI/AAAAAAAAAAA/aE1Q66Cuvb4/s100-p/photo.jpg"},
 			CreatedAt: time.Now().UTC(),
 			Edited:    nil,
@@ -592,8 +598,8 @@ func loadTemplates(state common.State, bodyPre string) (*template.Template, erro
 		"equalUsers": func(a, b users.User) bool {
 			return a.UserSpec == b.UserSpec
 		},
-		"reactableID": func(commentID uint64) string {
-			return fmt.Sprintf("%d/%d", state.ChangeID, commentID)
+		"reactableID": func(commentID string) string {
+			return fmt.Sprintf("%d/%s", state.ChangeID, commentID)
 		},
 		"reactionsBar": func(reactions []reactions.Reaction, reactableID string) htmlg.Component {
 			return reactionscomponent.ReactionsBar{
