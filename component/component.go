@@ -7,6 +7,7 @@ import (
 
 	"dmitri.shuralyov.com/html/belt"
 	"dmitri.shuralyov.com/service/change"
+	"dmitri.shuralyov.com/state"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/htmlg"
 	issuescomponent "github.com/shurcooL/issuesapp/component"
@@ -101,7 +102,27 @@ func (e Event) icon() *html.Node {
 func (e Event) text() []*html.Node {
 	switch p := e.Event.Payload.(type) {
 	case change.ClosedEvent:
-		return []*html.Node{htmlg.Text("closed this")}
+		ns := []*html.Node{htmlg.Text("closed this")}
+		switch c := p.Closer.(type) {
+		case change.Change:
+			ns = append(ns, htmlg.Text(" in "))
+			ns = append(ns, belt.Change{
+				State:   state.Change(c.State), // TODO: Make the conversion go away (by making change.State type state.Change).
+				Title:   c.Title,
+				HTMLURL: p.CloserHTMLURL,
+				Short:   true,
+			}.Render()...)
+		case change.Commit:
+			ns = append(ns, htmlg.Text(" in "))
+			ns = append(ns, belt.Commit{
+				SHA:             c.SHA,
+				Message:         c.Message,
+				AuthorAvatarURL: c.Author.AvatarURL,
+				HTMLURL:         p.CloserHTMLURL,
+				Short:           true,
+			}.Render()...)
+		}
+		return ns
 	case change.ReopenedEvent:
 		return []*html.Node{htmlg.Text("reopened this")}
 	case change.RenamedEvent:
