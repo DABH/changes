@@ -556,12 +556,19 @@ type state struct {
 	Timeline []timelineItem
 }
 
+// Tabnav renders the tabnav.
 func (s state) Tabnav(selected string) template.HTML {
-	// Render the tabnav.
+	var files htmlg.Component = iconText{Icon: octiconssvg.Diff, Text: "Files"}
+	if s.Change.ChangedFiles != 0 {
+		files = contentCounter{Content: files, Count: s.Change.ChangedFiles}
+	}
 	return template.HTML(htmlg.RenderComponentsString(tabnav{
 		Tabs: []tab{
 			{
-				Content:  iconText{Icon: octiconssvg.CommentDiscussion, Text: "Discussion"},
+				Content: contentCounter{
+					Content: iconText{Icon: octiconssvg.CommentDiscussion, Text: "Discussion"},
+					Count:   s.Change.Replies,
+				},
 				URL:      fmt.Sprintf("%s/%d", s.BaseURI, s.ChangeID),
 				Selected: selected == "Discussion",
 			},
@@ -574,7 +581,7 @@ func (s state) Tabnav(selected string) template.HTML {
 				Selected: selected == "Commits",
 			},
 			{
-				Content:  iconText{Icon: octiconssvg.Diff, Text: "Files"},
+				Content:  files,
 				URL:      fmt.Sprintf("%s/%d/files", s.BaseURI, s.ChangeID),
 				Selected: selected == "Files",
 			},
