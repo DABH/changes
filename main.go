@@ -454,6 +454,7 @@ func (h *handler) ChangeFilesHandler(w http.ResponseWriter, req *http.Request, c
 		if next := i + 1; next < len(cs) {
 			commit.NextSHA = cs[next].SHA
 		}
+		state.PrevSHA, state.NextSHA = commit.PrevSHA, commit.NextSHA
 	}
 	var opt *change.GetDiffOptions
 	if commitID != "" {

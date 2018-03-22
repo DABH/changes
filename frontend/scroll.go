@@ -55,6 +55,21 @@ func setupScroll() {
 			processHashSet()
 
 			ke.PreventDefault()
+
+		// 'p' keyboard shortcut to go to previous commit.
+		case ke.KeyCode == 'P' && !ke.Repeat && !ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey:
+			if state.PrevSHA == "" {
+				return
+			}
+			dom.GetWindow().Location().Href = state.PrevSHA
+			ke.PreventDefault()
+		// 'n' keyboard shortcut to go to next commit.
+		case ke.KeyCode == 'N' && !ke.Repeat && !ke.CtrlKey && !ke.AltKey && !ke.MetaKey && !ke.ShiftKey:
+			if state.NextSHA == "" {
+				return
+			}
+			dom.GetWindow().Location().Href = state.NextSHA
+			ke.PreventDefault()
 		}
 	})
 }
