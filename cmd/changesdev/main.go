@@ -60,7 +60,7 @@ func main() {
 
 	var usersService users.Service
 	var service change.Service
-	switch 0 {
+	switch 1 {
 	case 0:
 		// Perform GitHub API authentication with provided token.
 		token := os.Getenv("CHANGES_GITHUB_TOKEN")
@@ -83,10 +83,7 @@ func main() {
 		if err != nil {
 			log.Fatalln("ghusers.NewService:", err)
 		}
-		service, err = githubapi.NewService(ghV3, ghV4, nil)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		service = githubapi.NewService(ghV3, ghV4, nil)
 
 	case 1:
 		cacheTransport := httpcache.NewMemoryCacheTransport()
@@ -157,9 +154,10 @@ func main() {
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/bradleyfalzon/ghinstallation"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/golang/gddo"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/avelino/awesome-go"))
-		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/travis-ci/travis-build"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/travis-ci/travis-build"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/primer/octicons"))
-		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/go"))
+		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "github.com/golang/tools"))
+		req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/go"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/tools"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "go.googlesource.com/build"))
 		//req = req.WithContext(context.WithValue(req.Context(), changes.RepoSpecContextKey, "upspin.googlesource.com/upspin"))
