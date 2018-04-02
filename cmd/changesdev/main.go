@@ -83,7 +83,7 @@ func main() {
 		if err != nil {
 			log.Fatalln("ghusers.NewService:", err)
 		}
-		service = githubapi.NewService(ghV3, ghV4, nil)
+		service = githubapi.NewService(ghV3, ghV4, nil, nil)
 
 	case 1:
 		cacheTransport := httpcache.NewMemoryCacheTransport()
