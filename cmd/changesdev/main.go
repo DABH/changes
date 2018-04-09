@@ -14,6 +14,10 @@ https://review.openstack.org/Documentation/config-hooks.html#_comment_added
 
 Go CL <-> PR doc: https://docs.google.com/document/d/131IKF-SHY8cLwpXhkR46HVrKiIYJztZml3YyqECwrgk/edit
 
+small Go CL:
+-	http://localhost:8080/changes/92456
+-	https://go-review.googlesource.com/c/go/+/92456
+
 go-review / build / 80840 is a good simple CL with inline comments, replies, few revisions
 
 another small one is go-review / debug / 92416:
@@ -60,7 +64,7 @@ func main() {
 
 	var usersService users.Service
 	var service change.Service
-	switch 1 {
+	switch 2 {
 	case 0:
 		// Perform GitHub API authentication with provided token.
 		token := os.Getenv("CHANGES_GITHUB_TOKEN")

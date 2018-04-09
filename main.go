@@ -218,7 +218,7 @@ func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error
 	}
 	es = state.augmentUnread(req.Context(), es, h.cs, h.Notifications)
 	state.Changes = component.Changes{
-		IssuesNav: component.IssuesNav{
+		ChangesNav: component.ChangesNav{
 			OpenCount:     openCount,
 			ClosedCount:   closedCount,
 			Path:          state.BaseURI + state.ReqPath,

@@ -10,9 +10,9 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// IssuesNav is a navigation component for displaying a header for a list of changes.
+// ChangesNav is a navigation component for displaying a header for a list of changes.
 // It contains tabs to switch between viewing open and closed changes.
-type IssuesNav struct {
+type ChangesNav struct {
 	OpenCount     uint64     // Open changes count.
 	ClosedCount   uint64     // Closed changes count.
 	Path          string     // URL path of current page (needed to generate correct links).
@@ -20,7 +20,7 @@ type IssuesNav struct {
 	StateQueryKey string     // Name of query key for controlling change state filter. Constant, but provided externally.
 }
 
-func (n IssuesNav) Render() []*html.Node {
+func (n ChangesNav) Render() []*html.Node {
 	// TODO: Make this much nicer.
 	// <header class="list-entry-header">
 	// 	<nav>{{.Tabs}}</nav>
@@ -36,7 +36,7 @@ func (n IssuesNav) Render() []*html.Node {
 }
 
 // tabs renders the HTML nodes for <nav> element with tab header links.
-func (n IssuesNav) tabs() []*html.Node {
+func (n ChangesNav) tabs() []*html.Node {
 	selectedTabName := n.Query.Get(n.StateQueryKey)
 	var ns []*html.Node
 	for i, tab := range []struct {
@@ -45,8 +45,8 @@ func (n IssuesNav) tabs() []*html.Node {
 	}{
 		// Note: The routing logic (i.e., exact tab Name values) is duplicated with tabStateFilter.
 		//       Might want to try to factor it out into a common location (e.g., a route package or so).
-		{Name: "", Component: OpenIssuesTab{Count: n.OpenCount}},
-		{Name: "closed", Component: ClosedIssuesTab{Count: n.ClosedCount}},
+		{Name: "", Component: OpenChangesTab{Count: n.OpenCount}},
+		{Name: "closed", Component: ClosedChangesTab{Count: n.ClosedCount}},
 	} {
 		tabURL := (&url.URL{
 			Path:     n.Path,
@@ -71,7 +71,7 @@ func (n IssuesNav) tabs() []*html.Node {
 }
 
 // rawQuery returns the raw query for a link pointing to tabName.
-func (n IssuesNav) rawQuery(tabName string) string {
+func (n ChangesNav) rawQuery(tabName string) string {
 	q := n.Query
 	if tabName == "" {
 		q.Del(n.StateQueryKey)
@@ -81,12 +81,12 @@ func (n IssuesNav) rawQuery(tabName string) string {
 	return q.Encode()
 }
 
-// OpenIssuesTab is an "Open Issues Tab" component.
-type OpenIssuesTab struct {
+// OpenChangesTab is an "Open Changes Tab" component.
+type OpenChangesTab struct {
 	Count uint64 // Count of open changes.
 }
 
-func (t OpenIssuesTab) Render() []*html.Node {
+func (t OpenChangesTab) Render() []*html.Node {
 	// TODO: Make this much nicer.
 	// <span style="margin-right: 4px;">{{octicon "git-pull-request"}}</span>
 	// {{.Count}} Open
@@ -101,12 +101,12 @@ func (t OpenIssuesTab) Render() []*html.Node {
 	return []*html.Node{icon, text}
 }
 
-// ClosedIssuesTab is a "Closed Issues Tab" component.
-type ClosedIssuesTab struct {
+// ClosedChangesTab is a "Closed Changes Tab" component.
+type ClosedChangesTab struct {
 	Count uint64 // Count of closed changes.
 }
 
-func (t ClosedIssuesTab) Render() []*html.Node {
+func (t ClosedChangesTab) Render() []*html.Node {
 	// TODO: Make this much nicer.
 	// <span style="margin-right: 4px;">{{octicon "check"}}</span>
 	// {{.Count}} Closed

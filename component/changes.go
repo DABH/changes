@@ -14,15 +14,15 @@ import (
 // Changes is a component that displays a page of changes,
 // with a navigation bar on top.
 type Changes struct {
-	IssuesNav IssuesNav
-	Filter    change.StateFilter
-	Entries   []ChangeEntry
+	ChangesNav ChangesNav
+	Filter     change.StateFilter
+	Entries    []ChangeEntry
 }
 
 func (i Changes) Render() []*html.Node {
 	// TODO: Make this much nicer.
 	// <div class="list-entry list-entry-border">
-	// 	{{render .IssuesNav}}
+	// 	{{render .ChangesNav}}
 	// 	{{with .Entries}}{{range .}}
 	// 		{{render .}}
 	// 	{{end}}{{else}}
@@ -31,7 +31,7 @@ func (i Changes) Render() []*html.Node {
 	// </div>
 
 	var ns []*html.Node
-	ns = append(ns, i.IssuesNav.Render()...)
+	ns = append(ns, i.ChangesNav.Render()...)
 	for _, e := range i.Entries {
 		ns = append(ns, e.Render()...)
 	}
