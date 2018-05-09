@@ -45,9 +45,9 @@ import (
 	"dmitri.shuralyov.com/service/change/httproute"
 	"dmitri.shuralyov.com/service/change/maintner"
 	"github.com/andygrunwald/go-gerrit"
-	"github.com/google/go-github/github"
+	githubv3 "github.com/google/go-github/github"
 	"github.com/gregjones/httpcache"
-	"github.com/shurcooL/githubql"
+	"github.com/shurcooL/githubv4"
 	"github.com/shurcooL/home/httputil"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/reactions/emojis"
@@ -79,8 +79,8 @@ func main() {
 			MarkCachedResponses: true,
 		}
 		httpClient := &http.Client{Transport: cacheTransport}
-		ghV3 := github.NewClient(httpClient)
-		ghV4 := githubql.NewClient(httpClient)
+		ghV3 := githubv3.NewClient(httpClient)
+		ghV4 := githubv4.NewClient(httpClient)
 
 		var err error
 		usersService, err = ghusers.NewService(ghV3)
