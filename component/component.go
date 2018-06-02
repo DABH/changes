@@ -11,7 +11,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/htmlg"
 	issuescomponent "github.com/shurcooL/issuesapp/component"
-	"github.com/shurcooL/octiconssvg"
+	"github.com/shurcooL/octicon"
 	"github.com/shurcooL/users"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -54,40 +54,40 @@ func (e Event) icon() *html.Node {
 	)
 	switch p := e.Event.Payload.(type) {
 	case change.ClosedEvent:
-		icon = octiconssvg.CircleSlash()
+		icon = octicon.CircleSlash()
 		color, backgroundColor = "#fff", "#bd2c00"
 	case change.ReopenedEvent:
-		icon = octiconssvg.PrimitiveDot()
+		icon = octicon.PrimitiveDot()
 		color, backgroundColor = "#fff", "#6cc644"
 	case change.RenamedEvent:
-		icon = octiconssvg.Pencil()
+		icon = octicon.Pencil()
 	case change.LabeledEvent, change.UnlabeledEvent:
-		icon = octiconssvg.Tag()
+		icon = octicon.Tag()
 	case change.ReviewRequestedEvent:
-		icon = octiconssvg.Eye()
+		icon = octicon.Eye()
 	case change.ReviewRequestRemovedEvent:
-		icon = octiconssvg.X()
+		icon = octicon.X()
 	case change.MergedEvent:
-		icon = octiconssvg.GitMerge()
+		icon = octicon.GitMerge()
 		color, backgroundColor = "#fff", "#6f42c1"
 	case change.DeletedEvent:
 		switch p.Type {
 		case "branch":
-			icon = octiconssvg.GitBranch()
+			icon = octicon.GitBranch()
 			color, backgroundColor = "#fff", "#767676"
 		case "comment":
-			icon = octiconssvg.X()
+			icon = octicon.X()
 		default:
 			panic("unreachable")
 		}
 	case change.ApprovedEvent:
-		icon = octiconssvg.Check()
+		icon = octicon.Check()
 		color, backgroundColor = "#fff", "#6cc644"
 	case change.ChangesRequestedEvent:
-		icon = octiconssvg.X()
+		icon = octicon.X()
 		color, backgroundColor = "#fff", "#bd2c00"
 	default:
-		icon = octiconssvg.PrimitiveDot()
+		icon = octicon.PrimitiveDot()
 	}
 	return &html.Node{
 		Type: html.ElementNode, Data: atom.Span.String(),
@@ -216,15 +216,15 @@ func (cb ChangeBadge) Render() []*html.Node {
 	)
 	switch cb.State {
 	case change.OpenState:
-		icon = octiconssvg.GitPullRequest()
+		icon = octicon.GitPullRequest()
 		text = "Open"
 		color = "#6cc644"
 	case change.ClosedState:
-		icon = octiconssvg.GitPullRequest()
+		icon = octicon.GitPullRequest()
 		text = "Closed"
 		color = "#bd2c00"
 	case change.MergedState:
-		icon = octiconssvg.GitMerge()
+		icon = octicon.GitMerge()
 		text = "Merged"
 		color = "#6f42c1"
 	default:
@@ -268,13 +268,13 @@ func (ii ChangeIcon) Render() []*html.Node {
 	)
 	switch ii.State {
 	case change.OpenState:
-		icon = octiconssvg.GitPullRequest()
+		icon = octicon.GitPullRequest()
 		color = "#6cc644"
 	case change.ClosedState:
-		icon = octiconssvg.GitPullRequest()
+		icon = octicon.GitPullRequest()
 		color = "#bd2c00"
 	case change.MergedState:
-		icon = octiconssvg.GitMerge()
+		icon = octicon.GitMerge()
 		color = "#6f42c1"
 	}
 	span := &html.Node{

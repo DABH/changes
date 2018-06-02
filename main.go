@@ -28,7 +28,7 @@ import (
 	"github.com/shurcooL/httpfs/html/vfstemplate"
 	"github.com/shurcooL/httpgzip"
 	"github.com/shurcooL/notifications"
-	"github.com/shurcooL/octiconssvg"
+	"github.com/shurcooL/octicon"
 	"github.com/shurcooL/reactions"
 	reactionscomponent "github.com/shurcooL/reactions/component"
 	"github.com/shurcooL/users"
@@ -559,7 +559,7 @@ type state struct {
 
 // Tabnav renders the tabnav.
 func (s state) Tabnav(selected string) template.HTML {
-	var files htmlg.Component = iconText{Icon: octiconssvg.Diff, Text: "Files"}
+	var files htmlg.Component = iconText{Icon: octicon.Diff, Text: "Files"}
 	if s.Change.ChangedFiles != 0 {
 		files = contentCounter{Content: files, Count: s.Change.ChangedFiles}
 	}
@@ -567,7 +567,7 @@ func (s state) Tabnav(selected string) template.HTML {
 		Tabs: []tab{
 			{
 				Content: contentCounter{
-					Content: iconText{Icon: octiconssvg.CommentDiscussion, Text: "Discussion"},
+					Content: iconText{Icon: octicon.CommentDiscussion, Text: "Discussion"},
 					Count:   s.Change.Replies,
 				},
 				URL:      fmt.Sprintf("%s/%d", s.BaseURI, s.ChangeID),
@@ -575,7 +575,7 @@ func (s state) Tabnav(selected string) template.HTML {
 			},
 			{
 				Content: contentCounter{
-					Content: iconText{Icon: octiconssvg.GitCommit, Text: "Commits"},
+					Content: iconText{Icon: octicon.GitCommit, Text: "Commits"},
 					Count:   s.Change.Commits,
 				},
 				URL:      fmt.Sprintf("%s/%d/commits", s.BaseURI, s.ChangeID),
@@ -624,7 +624,7 @@ func loadTemplates(state common.State, bodyPre string) (*template.Template, erro
 		"state": func() common.State { return state },
 
 		"octicon": func(name string) (template.HTML, error) {
-			icon := octiconssvg.Icon(name)
+			icon := octicon.Icon(name)
 			if icon == nil {
 				return "", fmt.Errorf("%q is not a valid Octicon symbol name", name)
 			}

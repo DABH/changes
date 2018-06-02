@@ -6,7 +6,7 @@ import (
 	"dmitri.shuralyov.com/service/change"
 	"github.com/shurcooL/htmlg"
 	issuescomponent "github.com/shurcooL/issuesapp/component"
-	"github.com/shurcooL/octiconssvg"
+	"github.com/shurcooL/octicon"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -135,7 +135,7 @@ func (i ChangeEntry) Render() []*html.Node {
 			{Key: atom.Class.String(), Val: spanClass},
 		},
 	}
-	span.AppendChild(octiconssvg.Comment())
+	span.AppendChild(octicon.Comment())
 	span.AppendChild(htmlg.Text(fmt.Sprintf(" %d", i.Change.Replies)))
 	div.AppendChild(span)
 
