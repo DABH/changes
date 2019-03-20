@@ -80,12 +80,6 @@ func (e Event) icon() *html.Node {
 		default:
 			panic("unreachable")
 		}
-	case change.ApprovedEvent:
-		icon = octicon.Check()
-		color, backgroundColor = "#fff", "#6cc644"
-	case change.ChangesRequestedEvent:
-		icon = octicon.X()
-		color, backgroundColor = "#fff", "#bd2c00"
 	default:
 		icon = octicon.PrimitiveDot()
 	}
@@ -172,10 +166,6 @@ func (e Event) text() []*html.Node {
 		default:
 			panic("unreachable")
 		}
-	case change.ApprovedEvent:
-		return []*html.Node{htmlg.Text("approved this change")}
-	case change.ChangesRequestedEvent:
-		return []*html.Node{htmlg.Text("requested changes")}
 	default:
 		return []*html.Node{htmlg.Text("unknown event")} // TODO: See if this is optimal.
 	}
