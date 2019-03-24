@@ -32,8 +32,8 @@ import (
 	"github.com/shurcooL/reactions"
 	reactionscomponent "github.com/shurcooL/reactions/component"
 	"github.com/shurcooL/users"
+	"github.com/sourcegraph/go-diff/diff"
 	"golang.org/x/net/html"
-	"sourcegraph.com/sourcegraph/go-diff/diff"
 )
 
 // TODO: Find a better way for changes to be able to ensure registration of a top-level route:
