@@ -96,8 +96,11 @@ var BaseURIContextKey = &contextKey{"BaseURI"}
 
 // Options for configuring changes app.
 type Options struct {
-	Notifications    notifications.Service // If not nil, changes containing unread notifications are highlighted.
-	DisableReactions bool                  // Disable all support for displaying and toggling reactions.
+	// Notifications, if not nil, is used to highlight changes containing
+	// unread notifications, and to mark changes that are viewed as read.
+	Notifications notifications.Service
+
+	DisableReactions bool // Disable all support for displaying and toggling reactions.
 
 	HeadPre, HeadPost template.HTML
 	BodyPre           string // An html/template definition of "body-pre" template.
@@ -216,7 +219,9 @@ func (h *handler) ChangesHandler(w http.ResponseWriter, req *http.Request) error
 	for _, i := range is {
 		es = append(es, component.ChangeEntry{Change: i, BaseURI: state.BaseURI})
 	}
-	es = state.augmentUnread(req.Context(), es, h.cs, h.Notifications)
+	if h.Notifications != nil {
+		es = state.augmentUnread(req.Context(), es, h.Notifications, h.cs)
+	}
 	state.Changes = component.Changes{
 		ChangesNav: component.ChangesNav{
 			OpenCount:     openCount,
@@ -257,18 +262,15 @@ func stateFilter(query url.Values) (change.StateFilter, error) {
 	}
 }
 
-func (s state) augmentUnread(ctx context.Context, es []component.ChangeEntry, service change.Service, notificationsService notifications.Service) []component.ChangeEntry {
-	if notificationsService == nil {
-		return es
-	}
-
-	tt, ok := service.(interface {
+func (s state) augmentUnread(ctx context.Context, es []component.ChangeEntry, notificationService notifications.Service, changeService change.Service) []component.ChangeEntry {
+	tt, ok := changeService.(interface {
 		ThreadType(repo string) string
 	})
 	if !ok {
 		log.Println("augmentUnread: change service doesn't implement ThreadType")
 		return es
 	}
+	threadType := tt.ThreadType(s.RepoSpec)
 
 	if s.CurrentUser.ID == 0 {
 		// Unauthenticated user cannot have any unread changes.
@@ -276,8 +278,9 @@ func (s state) augmentUnread(ctx context.Context, es []component.ChangeEntry, se
 	}
 
 	// TODO: Consider starting to do this in background in parallel with is.List.
-	ns, err := notificationsService.List(ctx, notifications.ListOptions{
+	ns, err := notificationService.List(ctx, notifications.ListOptions{
 		Repo: &notifications.RepoSpec{URI: s.RepoSpec},
+		All:  false,
 	})
 	if err != nil {
 		log.Println("augmentUnread: failed to notifications.List:", err)
@@ -288,7 +291,7 @@ func (s state) augmentUnread(ctx context.Context, es []component.ChangeEntry, se
 	for _, n := range ns {
 		// n.RepoSpec == s.RepoSpec is guaranteed because we filtered in notifications.ListOptions,
 		// so we only need to check that n.ThreadType matches.
-		if n.ThreadType != tt.ThreadType(s.RepoSpec) {
+		if n.ThreadType != threadType {
 			continue
 		}
 		unreadThreads[n.ThreadID] = struct{}{}
@@ -364,6 +367,12 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 	if err != nil {
 		return fmt.Errorf("changes.ListTimeline: %v", err)
 	}
+	if h.Notifications != nil {
+		err := state.markRead(req.Context(), h.Notifications, h.cs)
+		if err != nil {
+			log.Println("ChangeHandler: failed to markRead:", err)
+		}
+	}
 	var timeline []timelineItem
 	for _, item := range ts {
 		timeline = append(timeline, timelineItem{item})
@@ -381,6 +390,25 @@ func (h *handler) ChangeHandler(w http.ResponseWriter, req *http.Request, change
 		return fmt.Errorf("t.ExecuteTemplate: %v", err)
 	}
 	return nil
+}
+
+func (s state) markRead(ctx context.Context, notificationService notifications.Service, changeService change.Service) error {
+	tt, ok := changeService.(interface {
+		ThreadType(repo string) string
+	})
+	if !ok {
+		log.Println("markRead: change service doesn't implement ThreadType")
+		return nil
+	}
+	threadType := tt.ThreadType(s.RepoSpec)
+
+	if s.CurrentUser.ID == 0 {
+		// Unauthenticated user cannot mark anything as read.
+		return nil
+	}
+
+	err := notificationService.MarkRead(ctx, notifications.RepoSpec{URI: s.RepoSpec}, threadType, s.ChangeID)
+	return err
 }
 
 func (h *handler) ChangeCommitsHandler(w http.ResponseWriter, req *http.Request, changeID uint64) error {
