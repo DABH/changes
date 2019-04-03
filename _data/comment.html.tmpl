@@ -39,7 +39,7 @@
 	<div style="display: flex; flex-direction: column;">
 		<div id="comment-{{.ID}}">
 			<div class="list-entry-container list-entry-border">
-				<header class="list-entry-header" style="display: flex;{{if eq .State +1}} background-color: #d4ffd4; padding: 4px;{{else if eq .State -1}} background-color: #ffd4d4; padding: 4px;{{end}}{{if not .Body}} border: none;{{end}}">
+				<header class="list-entry-header" style="display: flex;{{if ne .State 0}} padding: 4px;{{end}}{{if not .Body}} border: none;{{end}}">
 					<span class="content"{{if .State}} style="line-height: 28px;"{{end}}>{{template "review-icon" .State}}{{render (user .User)}} {{template "review-action" .State}} <a class="black" href="#comment-{{.ID}}" onclick="AnchorScroll(this, event);">{{render (time .CreatedAt)}}</a>
 						{{with .Edited}} · <span style="cursor: default;" title="{{.By.Login}} edited this comment {{reltime .At}}.">edited{{if not (equalUsers $.User .By)}} by {{.By.Login}}{{end}}</span>{{end}}
 					</span>
@@ -84,23 +84,21 @@
 </div>
 {{end}}
 
-{{/* Dot is changes.ReviewState. */}}
+{{/* Dot is state.Review. */}}
 {{define "review-icon" }}
-	{{if eq . +1}}
+	{{if gt . 0}}
 		<span class="event-icon" style="color: #fff; background-color: #6cc644;">{{octicon "check"}}</span>
-	{{else if eq . -1}}
+	{{else if lt . 0}}
 		<span class="event-icon" style="color: #fff; background-color: #bd2c00;">{{octicon "x"}}</span>
 	{{end}}
 {{end}}
 
-{{/* Dot is changes.ReviewState. */}}
+{{/* Dot is state.Review. */}}
 {{define "review-action" }}
 	{{if eq . 0}}
 		commented
-	{{else if eq . +1}}
-		approved this change
-	{{else if eq . -1}}
-		requested changes
+	{{else}}
+		reviewed {{printf "%+d" .}}
 	{{end}}
 {{end}}
 

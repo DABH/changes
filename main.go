@@ -21,6 +21,7 @@ import (
 	"dmitri.shuralyov.com/app/changes/common"
 	"dmitri.shuralyov.com/app/changes/component"
 	"dmitri.shuralyov.com/service/change"
+	statepkg "dmitri.shuralyov.com/state"
 	"github.com/dustin/go-humanize"
 	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/shurcooL/htmlg"
@@ -327,7 +328,7 @@ func (h *handler) MockHandler(w http.ResponseWriter, req *http.Request) error {
 			User:      users.User{Login: "Eric Grosse", AvatarURL: "https://lh6.googleusercontent.com/-_sdEtv2PRxk/AAAAAAAAAAI/AAAAAAAAAAA/aE1Q66Cuvb4/s100-p/photo.jpg"},
 			CreatedAt: time.Now().UTC(),
 			Edited:    nil,
-			State:     change.Approved,
+			State:     statepkg.ReviewPlus2,
 			Body:      "",
 			Reactions: []reactions.Reaction{},
 			Editable:  true,
